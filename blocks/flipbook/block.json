@@ -1,0 +1,39 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "bdpdf/flipbook",
+	"version": "1.0.0",
+	"title": "PDF-Flipbook",
+	"category": "media",
+	"icon": "book",
+	"description": "Zeigt ein PDF aus der Mediathek als blätterbares Buch mit Umblätter-Animation.",
+	"keywords": [ "pdf", "flipbook", "blättern", "buch" ],
+	"textdomain": "bdpdf",
+	"attributes": {
+		"pdfId": {
+			"type": "number"
+		},
+		"pdfUrl": {
+			"type": "string",
+			"default": ""
+		},
+		"pdfTitle": {
+			"type": "string",
+			"default": ""
+		},
+		"showCover": {
+			"type": "boolean",
+			"default": true
+		}
+	},
+	"supports": {
+		"align": [ "wide", "full" ],
+		"html": false
+	},
+	"render": "file:./render.php",
+	"editorScript": "file:./editor.js",
+	"editorStyle": "file:./editor.css",
+	"viewScript": "file:./page-flip.browser.js",
+	"viewScriptModule": "file:./view.mjs",
+	"viewStyle": "file:./view.css"
+}
