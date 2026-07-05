@@ -4,7 +4,7 @@ Tags: pdf, flipbook, block, media
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -42,6 +42,9 @@ Nein. Alle Bibliotheken liegen im Plugin, das PDF kommt aus der eigenen Mediathe
 Alle Seiten werden im Browser vorgerendert. Bis etwa 60 Seiten bleibt die Ladezeit angenehm; darüber steigt sie spürbar.
 
 == Changelog ==
+
+= 1.0.1 =
+* Scharfe Darstellung auf Retina-Displays: StPageFlip läuft jetzt im HTML-Modus statt im Canvas-Modus, Seiten werden auf hochauflösenden Bildschirmen höher gerendert.
 
 = 1.0.0 =
 * Erste Version: Block «PDF-Flipbook» mit Mediathek-Auswahl, Buchdeckel-Option und Tastatursteuerung.

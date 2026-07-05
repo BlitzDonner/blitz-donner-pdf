@@ -15,9 +15,18 @@
 	width: min(260px, 80%);
 }
 
-.wp-block-bdpdf-flipbook .bdpdf-book .page {
+.wp-block-bdpdf-flipbook .bdpdf-page {
 	background: #fff;
 	box-shadow: 0 0 18px rgba(0, 0, 0, 0.25);
+	overflow: hidden;
+}
+
+.wp-block-bdpdf-flipbook .bdpdf-page img {
+	width: 100%;
+	height: 100%;
+	display: block;
+	user-select: none;
+	pointer-events: none;
 }
 
 .wp-block-bdpdf-flipbook .bdpdf-nav {

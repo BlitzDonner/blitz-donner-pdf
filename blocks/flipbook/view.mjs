@@ -17,7 +17,10 @@ const nativeRAF = window.requestAnimationFrame.bind( window );
 window.requestAnimationFrame = ( cb ) =>
 	document.hidden ? setTimeout( () => cb( performance.now() ), 16 ) : nativeRAF( cb );
 
-const RENDER_SCALE = 2;
+// Auf Retina-Displays höher rendern, sonst wird Text unscharf. Deckel bei 3,
+// damit sehr breite PDF-Seiten keine Riesen-Canvases erzeugen.
+const DPR          = Math.min( window.devicePixelRatio || 1, 3 );
+const RENDER_SCALE = DPR > 1 ? 2.5 : 2;
 
 async function bdpdfInitFlipbook( root ) {
 	const loader   = root.querySelector( '.bdpdf-loader' );
@@ -48,7 +51,7 @@ async function bdpdfInitFlipbook( root ) {
 			canvas.height = viewport.height;
 			// intent 'print' rendert ohne requestAnimationFrame – läuft auch im Hintergrund-Tab.
 			await page.render( { canvasContext: canvas.getContext( '2d' ), viewport, intent: 'print' } ).promise;
-			images.push( canvas.toDataURL( 'image/jpeg', 0.85 ) );
+			images.push( canvas.toDataURL( 'image/jpeg', 0.9 ) );
 			progress.value = i;
 		}
 
@@ -70,7 +73,20 @@ async function bdpdfInitFlipbook( root ) {
 			flippingTime: 700,
 			mobileScrollSupport: false,
 		} );
-		pageFlip.loadFromImages( images );
+
+		// HTML-Modus statt Canvas-Modus: StPageFlips Canvas ignoriert die
+		// Gerätepixeldichte und ist auf Retina-Displays unscharf. Als
+		// DOM-Bilder rendert der Browser die Seiten in voller Schärfe.
+		const pageEls = images.map( ( src ) => {
+			const pageEl = document.createElement( 'div' );
+			pageEl.className = 'bdpdf-page';
+			const img = document.createElement( 'img' );
+			img.src = src;
+			img.alt = '';
+			pageEl.appendChild( img );
+			return pageEl;
+		} );
+		pageFlip.loadFromHTML( pageEls );
 
 		const updateInfo = () => {
 			const idx         = pageFlip.getCurrentPageIndex(); // 0-basiert, linke Seite.
