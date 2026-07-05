@@ -36,7 +36,18 @@ if ( ! empty( $attributes['pdfId'] ) ) {
 	}
 }
 
-$bdpdf_wrapper = get_block_wrapper_attributes( array( 'class' => 'bdpdf-flipbook' ) );
+// Darstellungsmodus wie bei Blitz & Donner Forms: theme | auto | light | dark.
+$bdpdf_appearance = isset( $attributes['appearanceMode'] ) ? sanitize_key( (string) $attributes['appearanceMode'] ) : 'auto';
+if ( ! in_array( $bdpdf_appearance, array( 'theme', 'auto', 'light', 'dark' ), true ) ) {
+	$bdpdf_appearance = 'auto';
+}
+
+$bdpdf_wrapper = get_block_wrapper_attributes(
+	array(
+		'class'                 => 'bdpdf-flipbook',
+		'data-bdpdf-appearance' => $bdpdf_appearance,
+	)
+);
 ?>
 <div <?php echo $bdpdf_wrapper; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- von WordPress escaped. ?>
 	data-pdf-url="<?php echo $bdpdf_pdf_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- oben mit esc_url() escaped. ?>"
@@ -55,9 +66,13 @@ $bdpdf_wrapper = get_block_wrapper_attributes( array( 'class' => 'bdpdf-flipbook
 	</div>
 	<div class="bdpdf-book" hidden></div>
 	<div class="bdpdf-nav" hidden>
-		<button type="button" class="bdpdf-prev">&lsaquo; <?php esc_html_e( 'Zurück', 'bdpdf' ); ?></button>
+		<div class="wp-block-button is-style-default">
+			<button type="button" class="bdpdf-prev wp-block-button__link wp-element-button">&lsaquo; <?php esc_html_e( 'Zurück', 'bdpdf' ); ?></button>
+		</div>
 		<span class="bdpdf-pageinfo" aria-live="polite"></span>
-		<button type="button" class="bdpdf-next"><?php esc_html_e( 'Weiter', 'bdpdf' ); ?> &rsaquo;</button>
+		<div class="wp-block-button is-style-default">
+			<button type="button" class="bdpdf-next wp-block-button__link wp-element-button"><?php esc_html_e( 'Weiter', 'bdpdf' ); ?> &rsaquo;</button>
+		</div>
 	</div>
 	<p class="bdpdf-fallback">
 		<a href="<?php echo $bdpdf_pdf_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- oben mit esc_url() escaped. ?>" download>

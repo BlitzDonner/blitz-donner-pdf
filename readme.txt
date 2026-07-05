@@ -4,7 +4,7 @@ Tags: pdf, flipbook, block, media
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.2.0
+Stable tag: 0.3.0
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -42,6 +42,11 @@ Nein. Alle Bibliotheken liegen im Plugin, das PDF kommt aus der eigenen Mediathe
 Alle Seiten werden im Browser vorgerendert. Bis etwa 60 Seiten bleibt die Ladezeit angenehm; darüber steigt sie spürbar.
 
 == Changelog ==
+
+= 0.3.0 =
+* Vier Darstellungsmodi wie bei Blitz & Donner Forms: Theme (Standard-Auswahl im Stil-Tab), Automatisch, Hell, Dunkel. Hell/Dunkel übernehmen die Forms-Optik 1:1 (Tokens, Karte, Buttons); Theme fügt kein eigenes Erscheinungs-CSS hinzu – alles kommt aus theme.json.
+* Navigations-Buttons als wp-element-button, damit Themes sie im Theme-Modus selbst stylen.
+* theme.json kann die Hell/Dunkel-Palette über settings.custom.bdpdf.* übersteuern.
 
 = 0.2.0 =
 * Seiten werden nach dem Hochladen einmal vorgerendert (Ablage in uploads/bdpdf/) und stehen im Frontend sofort bereit; Nachrendern nur noch bei zu grossem Viewport.

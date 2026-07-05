@@ -17,6 +17,12 @@ Der Block «BD PDF» ist dynamisch (`render.php`). Nach der PDF-Auswahl rendert 
 - `blocks/flipbook/page-flip.browser.js` – StPageFlip 2.0.7 (MIT)
 ## Lizenz
 GPL-3.0-or-later. Bewusst GPLv3 statt GPLv2: Die gebündelte Apache-2.0-Bibliothek PDF.js ist nur mit GPLv3 kompatibel. Beide Bibliotheken sind vom WordPress-Plugin-Directory akzeptierte Lizenzen; die unminifizierten Quellen sind in `readme.txt` verlinkt.
+## Darstellungsmodi (wie Blitz & Donner Forms)
+Im Stil-Tab bietet der Block den «Farbmodus» mit vier Werten (Attribut `appearanceMode`, Wrapper-Attribut `data-bdpdf-appearance`):
+- **Theme:** Das Plugin fügt kein Erscheinungs-CSS hinzu – nur strukturelle Layoutregeln. Buttons sind `wp-element-button`, Farben und Typografie kommen vollständig aus theme.json.
+- **Hell / Dunkel:** isolierte Apple-Optik, Token-Werte 1:1 aus Blitz & Donner Forms (Karte #ffffff/#1c1c1e, Text #1d1d1f/#f5f5f7, Akzent #0071e3/#0a84ff, Radius 10/16 px, Buttons 0.7rem/1.5rem, Gewicht 600).
+- **Automatisch:** Hell, bei `prefers-color-scheme: dark` Dunkel.
+Themes können die Hell/Dunkel-Palette ohne eigenes CSS übersteuern – via `settings.custom.bdpdf.*` in theme.json (wird zu `--wp--custom--bdpdf--…`): `light-card`, `light-text`, `light-label`, `light-border`, `light-accent`, `light-on-accent` sowie dieselben Schlüssel mit `dark-`.
 ## Bedienung
 1. Block «PDF-Flipbook» einfügen (Kategorie Medien).
 2. PDF aus der Mediathek wählen oder hochladen.

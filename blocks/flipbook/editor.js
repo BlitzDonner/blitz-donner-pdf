@@ -16,7 +16,7 @@
 	const { useState, useEffect, useRef } = wp.element;
 	const { useBlockProps, MediaPlaceholder, MediaReplaceFlow, BlockControls, InspectorControls } =
 		wp.blockEditor;
-	const { PanelBody, ToggleControl, Spinner } = wp.components;
+	const { PanelBody, ToggleControl, SelectControl, Spinner } = wp.components;
 	const { __ } = wp.i18n;
 	const apiFetch = wp.apiFetch;
 
@@ -105,9 +105,25 @@
 			el(
 				'div',
 				{ className: 'bdpdf-nav', key: 'nav' },
-				el( 'button', { type: 'button', className: 'bdpdf-prev' }, '‹ ' + __( 'Zurück', 'bdpdf' ) ),
+				el(
+					'div',
+					{ className: 'wp-block-button is-style-default' },
+					el(
+						'button',
+						{ type: 'button', className: 'bdpdf-prev wp-block-button__link wp-element-button' },
+						'‹ ' + __( 'Zurück', 'bdpdf' )
+					)
+				),
 				el( 'span', { className: 'bdpdf-pageinfo', 'aria-live': 'polite' } ),
-				el( 'button', { type: 'button', className: 'bdpdf-next' }, __( 'Weiter', 'bdpdf' ) + ' ›' )
+				el(
+					'div',
+					{ className: 'wp-block-button is-style-default' },
+					el(
+						'button',
+						{ type: 'button', className: 'bdpdf-next wp-block-button__link wp-element-button' },
+						__( 'Weiter', 'bdpdf' ) + ' ›'
+					)
+				)
 			),
 			el(
 				'p',
@@ -120,7 +136,10 @@
 	registerBlockType( 'bdpdf/flipbook', {
 		edit: function ( props ) {
 			const { attributes, setAttributes } = props;
-			const blockProps = useBlockProps( { className: 'bdpdf-flipbook bdpdf-editor' } );
+			const blockProps = useBlockProps( {
+				className: 'bdpdf-flipbook bdpdf-editor',
+				'data-bdpdf-appearance': attributes.appearanceMode || 'auto',
+			} );
 
 			const [ status, setStatus ]     = useState( 'leer' ); // leer | prueft | rendert | bereit | fehler
 			const [ progress, setProgress ] = useState( { done: 0, total: 0 } );
@@ -277,6 +296,33 @@
 							checked: !! attributes.showCover,
 							onChange: function ( value ) {
 								setAttributes( { showCover: value } );
+							},
+						} )
+					)
+				),
+				// Farbmodus gehört in den Stil-Tab (Pinsel) – gleiche Logik
+				// und gleiche Optionen wie bei Blitz & Donner Forms.
+				el(
+					InspectorControls,
+					{ group: 'styles' },
+					el(
+						PanelBody,
+						{ title: __( 'Erscheinungsbild', 'bdpdf' ), initialOpen: true },
+						el( SelectControl, {
+							label: __( 'Farbmodus', 'bdpdf' ),
+							value: attributes.appearanceMode || 'auto',
+							help:
+								'theme' === ( attributes.appearanceMode || 'auto' )
+									? __( 'Farben, Buttons und Typografie kommen vollständig aus dem Theme (theme.json). Das Plugin fügt kein eigenes CSS hinzu.', 'bdpdf' )
+									: undefined,
+							options: [
+								{ label: __( 'Theme (Standard)', 'bdpdf' ), value: 'theme' },
+								{ label: __( 'Automatisch (System)', 'bdpdf' ), value: 'auto' },
+								{ label: __( 'Hell', 'bdpdf' ), value: 'light' },
+								{ label: __( 'Dunkel', 'bdpdf' ), value: 'dark' },
+							],
+							onChange: function ( value ) {
+								setAttributes( { appearanceMode: value || 'auto' } );
 							},
 						} )
 					)
