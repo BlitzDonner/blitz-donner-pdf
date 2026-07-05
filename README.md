@@ -3,14 +3,16 @@ WordPress-Plugin von Blitz & Donner (Slug und Prefix: `bdpdf`). Stellt den Guten
 ## Namenskonvention
 Alle B&D-Plugins heissen «Blitz & Donner …» (zuerst die Marke, dann die Funktion) und tragen einen Slug-Prefix von mindestens 5 Zeichen, beginnend mit `bd`. Hier: `bdpdf`. Der Prefix gilt für Slug, Textdomain, Block-Namespace, CSS-Klassen und PHP-Symbole.
 ## Funktionsweise
-Der Block ist dynamisch (`render.php`). Im Editor wählt die Redaktion ein PDF aus der Mediathek; das Frontend rendert alle Seiten mit PDF.js in Canvas-Bilder und übergibt sie an StPageFlip. Beide Bibliotheken sind lokal gebündelt – kein CDN, keine externen Requests.
+Der Block «BD PDF» ist dynamisch (`render.php`). Nach der PDF-Auswahl rendert der Editor alle Seiten einmal mit PDF.js und lädt sie über die REST-Route `bdpdf/v1/pages` hoch (Ablage `uploads/bdpdf/<attachment-id>/page-<n>.jpg`, Metadaten am Attachment). Das Frontend zeigt die vorgerenderten Bilder sofort; nur wenn der Viewport mehr Pixel braucht als gespeichert, rendert PDF.js die sichtbaren Seiten nach. Der Editor zeigt dasselbe Flipbook wie das Frontend (gleiches Markup, gleicher Kern, gleiches Stylesheet). Beide Bibliotheken sind lokal gebündelt – kein CDN, keine externen Requests.
 ## Komponenten
-- `bdpdf.php` – Bootstrap, registriert den Block über `block.json`
+- `bdpdf.php` – Bootstrap, registriert Block, Editor-Konfiguration, Aufräumen beim Attachment-Löschen
+- `includes/rest-pages.php` – REST-Route `bdpdf/v1/pages/<id>` (GET Status, POST Seitenbild; Upload-Recht + JPEG-Validierung)
 - `readme.txt` – WordPress.org-Readme (Directory-tauglich)
-- `blocks/flipbook/block.json` – Block-Metadaten (apiVersion 3, dynamisch, Block-Name `bdpdf/flipbook`)
-- `blocks/flipbook/render.php` – Frontend-Markup mit Escaping
-- `blocks/flipbook/editor.js` – Editor-UI ohne Build-Step (wp-Globals, kein JSX)
-- `blocks/flipbook/view.mjs` – Frontend-Logik als ES-Modul (`viewScriptModule`)
+- `blocks/flipbook/block.json` – Block-Metadaten (apiVersion 3, dynamisch, Titel «BD PDF», Stil-Supports)
+- `blocks/flipbook/render.php` – Frontend-Markup mit Escaping, liefert vorgerenderte Seiten-URLs
+- `blocks/flipbook/flipbook-core.js` – gemeinsamer Flipbook-Kern für Frontend und Editor (klassisches Skript)
+- `blocks/flipbook/editor.js` – Editor-UI ohne Build-Step: Auswahl, Rendern+Upload, Live-Vorschau
+- `blocks/flipbook/view.mjs` – Frontend-Logik als ES-Modul: Sofortanzeige, Hi-Res-Nachrendern, Fallback
 - `blocks/flipbook/pdf.min.mjs`, `pdf.worker.min.mjs` – PDF.js 4.8.69 (Apache 2.0)
 - `blocks/flipbook/page-flip.browser.js` – StPageFlip 2.0.7 (MIT)
 ## Lizenz

@@ -4,7 +4,7 @@ Tags: pdf, flipbook, block, media
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.0.1
+Stable tag: 1.1.0
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -42,6 +42,12 @@ Nein. Alle Bibliotheken liegen im Plugin, das PDF kommt aus der eigenen Mediathe
 Alle Seiten werden im Browser vorgerendert. Bis etwa 60 Seiten bleibt die Ladezeit angenehm; darüber steigt sie spürbar.
 
 == Changelog ==
+
+= 1.1.0 =
+* Seiten werden nach dem Hochladen einmal vorgerendert (Ablage in uploads/bdpdf/) und stehen im Frontend sofort bereit; Nachrendern nur noch bei zu grossem Viewport.
+* Der Editor zeigt das echte Flipbook – gleiches Markup, gleiches Stylesheet wie das Frontend.
+* Blocktitel neu «BD PDF»; Stil-Tab mit Abständen, Rahmen, Radius, Schatten, Farben und Typografie (Block-Supports).
+* Neue REST-Route bdpdf/v1/pages (nur für angemeldete Nutzer mit Upload-Recht, JPEG-Validierung serverseitig).
 
 = 1.0.1 =
 * Scharfe Darstellung auf Retina-Displays: StPageFlip läuft jetzt im HTML-Modus statt im Canvas-Modus, Seiten werden auf hochauflösenden Bildschirmen höher gerendert.

@@ -1,50 +1,99 @@
 /**
- * Frontend-Logik des PDF-Flipbook-Blocks.
+ * Frontend-Logik des BD-PDF-Blocks.
  *
- * Rendert die PDF-Seiten mit PDF.js in Canvas-Bilder und übergibt sie an
- * StPageFlip (globales `St` aus page-flip.browser.js, geladen als viewScript).
+ * Regelfall: Die Seiten sind nach dem Hochladen bereits vorgerendert
+ * (data-pages) und das Flipbook steht sofort – ohne PDF.js. Nur wenn der
+ * Viewport mehr Pixel braucht als gespeichert, rendert PDF.js die sichtbaren
+ * Seiten nach. Fallback für Alt-Inhalte ohne Vorab-Rendering: komplettes
+ * Client-Rendering wie bisher.
  *
  * @package bdpdf
  */
 
-import * as pdfjsLib from './pdf.min.mjs';
+const DPR = Math.min( window.devicePixelRatio || 1, 3 );
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL( './pdf.worker.min.mjs', import.meta.url ).href;
+let pdfjsPromise = null;
+function loadPdfjs() {
+	if ( ! pdfjsPromise ) {
+		pdfjsPromise = import( './pdf.min.mjs' ).then( ( m ) => {
+			m.GlobalWorkerOptions.workerSrc = new URL( './pdf.worker.min.mjs', import.meta.url ).href;
+			return m;
+		} );
+	}
+	return pdfjsPromise;
+}
 
-// In versteckten Tabs feuert requestAnimationFrame nicht – Fallback auf setTimeout,
-// damit Rendering und Blätter-Animation auch im Hintergrund weiterlaufen.
-const nativeRAF = window.requestAnimationFrame.bind( window );
-window.requestAnimationFrame = ( cb ) =>
-	document.hidden ? setTimeout( () => cb( performance.now() ), 16 ) : nativeRAF( cb );
+/**
+ * Nachrendern sichtbarer Seiten, wenn der Viewport grösser ist als die
+ * gespeicherte Bildbreite. Rendert lazy, cached pro Seite.
+ */
+function setupHiRes( root, inst, count, storedWidth ) {
+	const cache   = new Map();
+	let pdfPromise = null;
 
-// Auf Retina-Displays höher rendern, sonst wird Text unscharf. Deckel bei 3,
-// damit sehr breite PDF-Seiten keine Riesen-Canvases erzeugen.
-const DPR          = Math.min( window.devicePixelRatio || 1, 3 );
-const RENDER_SCALE = DPR > 1 ? 2.5 : 2;
+	const neededWidth = () => {
+		const img = root.querySelector( '.bdpdf-page img' );
+		const el  = img ? img.closest( '.bdpdf-page' ) : null;
+		const w   = el ? el.getBoundingClientRect().width : 0;
+		return Math.round( w * DPR );
+	};
 
-async function bdpdfInitFlipbook( root ) {
-	const loader   = root.querySelector( '.bdpdf-loader' );
+	const upgradeVisible = async () => {
+		const needed = neededWidth();
+		if ( needed <= storedWidth * 1.05 ) {
+			return; // Gespeicherte Auflösung reicht.
+		}
+		if ( ! pdfPromise ) {
+			pdfPromise = loadPdfjs().then( ( m ) => m.getDocument( root.dataset.pdfUrl ).promise );
+		}
+		const pdf = await pdfPromise;
+		const idx = inst.pageFlip.getCurrentPageIndex();
+		// Sichtbare Doppelseite plus je eine Seite Vorgriff.
+		const wanted = [ idx, idx + 1, idx - 1, idx + 2 ].filter( ( i ) => i >= 0 && i < count );
+		for ( const i of wanted ) {
+			if ( cache.has( i ) ) {
+				inst.setPageSrc( i, cache.get( i ) );
+				continue;
+			}
+			const page     = await pdf.getPage( i + 1 );
+			const base     = page.getViewport( { scale: 1 } );
+			const scale    = Math.min( 4, needed / base.width );
+			const viewport = page.getViewport( { scale } );
+			const canvas   = document.createElement( 'canvas' );
+			canvas.width   = viewport.width;
+			canvas.height  = viewport.height;
+			await page.render( { canvasContext: canvas.getContext( '2d' ), viewport, intent: 'print' } ).promise;
+			const src = canvas.toDataURL( 'image/jpeg', 0.9 );
+			cache.set( i, src );
+			inst.setPageSrc( i, src );
+		}
+	};
+
+	inst.pageFlip.on( 'flip', () => {
+		upgradeVisible().catch( () => {} );
+	} );
+	upgradeVisible().catch( () => {} );
+}
+
+/** Fallback für Blöcke ohne vorgerenderte Seiten: alles im Client rendern. */
+async function legacyRender( root ) {
 	const loadText = root.querySelector( '.bdpdf-loader-text' );
 	const progress = root.querySelector( '.bdpdf-progress' );
-	const bookEl   = root.querySelector( '.bdpdf-book' );
-	const nav      = root.querySelector( '.bdpdf-nav' );
-	const pageinfo = root.querySelector( '.bdpdf-pageinfo' );
-	const btnPrev  = root.querySelector( '.bdpdf-prev' );
-	const btnNext  = root.querySelector( '.bdpdf-next' );
-
 	try {
-		const pdf = await pdfjsLib.getDocument( root.dataset.pdfUrl ).promise;
-		progress.max = pdf.numPages;
+		const pdfjsLib = await loadPdfjs();
+		const pdf      = await pdfjsLib.getDocument( root.dataset.pdfUrl ).promise;
+		progress.max   = pdf.numPages;
 
+		const scale  = DPR > 1 ? 2.5 : 2;
 		const images = [];
 		let pageW = 0;
 		let pageH = 0;
 		for ( let i = 1; i <= pdf.numPages; i++ ) {
 			const page     = await pdf.getPage( i );
-			const viewport = page.getViewport( { scale: RENDER_SCALE } );
+			const viewport = page.getViewport( { scale } );
 			if ( 1 === i ) {
-				pageW = viewport.width / RENDER_SCALE;
-				pageH = viewport.height / RENDER_SCALE;
+				pageW = viewport.width;
+				pageH = viewport.height;
 			}
 			const canvas  = document.createElement( 'canvas' );
 			canvas.width  = viewport.width;
@@ -55,65 +104,10 @@ async function bdpdfInitFlipbook( root ) {
 			progress.value = i;
 		}
 
-		loader.hidden = true;
-		bookEl.hidden = false;
-		nav.hidden    = false;
-
-		const ratio    = pageH / pageW;
-		const pageFlip = new St.PageFlip( bookEl, {
-			width: pageW,
-			height: pageH,
-			size: 'stretch',
-			minWidth: 240,
-			minHeight: Math.round( 240 * ratio ),
-			maxWidth: Math.round( pageW * 2 ),
-			maxHeight: Math.round( pageH * 2 ),
+		window.bdpdfFlipbook.init( root, images, {
+			pageWidth: pageW,
+			pageHeight: pageH,
 			showCover: '1' === root.dataset.showCover,
-			maxShadowOpacity: 0.4,
-			flippingTime: 700,
-			mobileScrollSupport: false,
-		} );
-
-		// HTML-Modus statt Canvas-Modus: StPageFlips Canvas ignoriert die
-		// Gerätepixeldichte und ist auf Retina-Displays unscharf. Als
-		// DOM-Bilder rendert der Browser die Seiten in voller Schärfe.
-		const pageEls = images.map( ( src ) => {
-			const pageEl = document.createElement( 'div' );
-			pageEl.className = 'bdpdf-page';
-			const img = document.createElement( 'img' );
-			img.src = src;
-			img.alt = '';
-			pageEl.appendChild( img );
-			return pageEl;
-		} );
-		pageFlip.loadFromHTML( pageEls );
-
-		const updateInfo = () => {
-			const idx         = pageFlip.getCurrentPageIndex(); // 0-basiert, linke Seite.
-			const count       = pdf.numPages;
-			const single      = 'portrait' === pageFlip.getOrientation() || 0 === idx;
-			const lastVisible = single ? idx + 1 : Math.min( idx + 2, count );
-			pageinfo.textContent = single
-				? `Seite ${ idx + 1 } / ${ count }`
-				: `Seiten ${ idx + 1 }–${ lastVisible } / ${ count }`;
-			btnPrev.disabled = idx <= 0;
-			btnNext.disabled = lastVisible >= count;
-		};
-		pageFlip.on( 'flip', updateInfo );
-		pageFlip.on( 'changeOrientation', updateInfo );
-		updateInfo();
-
-		btnPrev.addEventListener( 'click', () => pageFlip.flipPrev() );
-		btnNext.addEventListener( 'click', () => pageFlip.flipNext() );
-		root.addEventListener( 'keydown', ( e ) => {
-			if ( 'ArrowLeft' === e.key ) {
-				e.preventDefault();
-				pageFlip.flipPrev();
-			}
-			if ( 'ArrowRight' === e.key ) {
-				e.preventDefault();
-				pageFlip.flipNext();
-			}
 		} );
 	} catch ( err ) {
 		loadText.textContent = 'Das PDF konnte nicht geladen werden.';
@@ -123,4 +117,17 @@ async function bdpdfInitFlipbook( root ) {
 	}
 }
 
-document.querySelectorAll( '.wp-block-bdpdf-flipbook[data-pdf-url]' ).forEach( bdpdfInitFlipbook );
+document.querySelectorAll( '.wp-block-bdpdf-flipbook[data-pdf-url]' ).forEach( ( root ) => {
+	const pages = root.dataset.pages ? JSON.parse( root.dataset.pages ) : null;
+	if ( pages && pages.length ) {
+		// Regelfall: vorgerendert → sofort verfügbar.
+		const inst = window.bdpdfFlipbook.init( root, pages, {
+			pageWidth: parseInt( root.dataset.pageW, 10 ),
+			pageHeight: parseInt( root.dataset.pageH, 10 ),
+			showCover: '1' === root.dataset.showCover,
+		} );
+		setupHiRes( root, inst, pages.length, parseInt( root.dataset.pageW, 10 ) );
+	} else {
+		legacyRender( root );
+	}
+} );
