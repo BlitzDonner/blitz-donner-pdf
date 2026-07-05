@@ -1,6 +1,24 @@
-/* Editor-Stile des BD-PDF-Blocks – nur Editor-Chrome, keine Block-Optik.
-   Die Block-Optik kommt aus view.css (geteilt mit dem Frontend). */
+/* Editor-Stile des BD-PDF-Blocks – nur Editor-Chrome und die statische
+   Doppelseiten-Vorschau. Die Block-Optik kommt aus view.css (geteilt). */
 
 .bdpdf-editor .bdpdf-loader .components-spinner {
 	margin-bottom: 0.5rem;
+}
+
+/* Statische Doppelseite: gleiche Klassen und Skins wie das Frontend-Buch,
+   aber als simples Flex-Layout ohne StPageFlip. */
+.bdpdf-editor .bdpdf-book-static {
+	display: flex;
+	justify-content: center;
+	align-items: stretch;
+}
+
+.bdpdf-editor .bdpdf-book-static .bdpdf-page {
+	flex: 0 1 auto;
+	max-width: 50%;
+}
+
+.bdpdf-editor .bdpdf-book-static .bdpdf-page img {
+	width: 100%;
+	height: auto;
 }

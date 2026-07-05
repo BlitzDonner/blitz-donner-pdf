@@ -4,7 +4,7 @@ Tags: pdf, flipbook, block, media
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.3.1
+Stable tag: 0.3.2
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -42,6 +42,11 @@ Nein. Alle Bibliotheken liegen im Plugin, das PDF kommt aus der eigenen Mediathe
 Alle Seiten werden im Browser vorgerendert. Bis etwa 60 Seiten bleibt die Ladezeit angenehm; darüber steigt sie spürbar.
 
 == Changelog ==
+
+= 0.3.2 =
+* Editor-Vorschau neu als schlanke Doppelseiten-Ansicht ohne StPageFlip: gleiches Markup und Stylesheet wie das Frontend, blätterbar über dieselben Knöpfe. StPageFlip im Editor-Canvas hatte Klicks geschluckt und Gutenbergs Werkzeugleiste unterdrückt.
+* Behoben: Umschalten von «Erste Seite als Buchdeckel» liess die Vorschau verschwinden.
+* Behoben: Werkzeugleiste (inkl. «PDF ersetzen») erschien beim Klick auf den Block nicht.
 
 = 0.3.1 =
 * Editor: Buchgrösse wird bei Padding-/Breitenänderungen aus dem Stil-Tab neu berechnet (ResizeObserver) – keine Überlappung mit der Navigation mehr.

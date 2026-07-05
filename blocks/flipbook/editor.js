@@ -2,9 +2,11 @@
  * Editor-Ansicht des BD-PDF-Blocks (ohne Build-Step, nutzt wp-Globals).
  *
  * Nach der PDF-Auswahl rendert der Editor alle Seiten einmal mit PDF.js und
- * lädt sie über die REST-Route bdpdf/v1/pages hoch. Danach zeigt der Editor
- * dieselbe Flipbook-Ansicht wie das Frontend (gleiches Markup, gleiches
- * Stylesheet, gleicher Kern).
+ * lädt sie über die REST-Route bdpdf/v1/pages hoch. Die Vorschau ist eine
+ * reine React-Doppelseiten-Ansicht mit identischem Markup und Stylesheet wie
+ * das Frontend – bewusst OHNE StPageFlip im Editor-Canvas: dessen globale
+ * Event-Handler schlucken Klicks und brechen Gutenbergs Popover-Mechanik
+ * (Werkzeugleiste). Die Umblätter-Animation gibt es nur im Frontend.
  *
  * @package bdpdf
  */
@@ -13,7 +15,7 @@
 
 	const { registerBlockType } = wp.blocks;
 	const el = wp.element.createElement;
-	const { useState, useEffect, useRef } = wp.element;
+	const { useState, useEffect } = wp.element;
 	const { useBlockProps, MediaPlaceholder, MediaReplaceFlow, BlockControls, InspectorControls } =
 		wp.blockEditor;
 	const { PanelBody, ToggleControl, SelectControl, Spinner } = wp.components;
@@ -33,28 +35,6 @@
 			} );
 		}
 		return pdfjsPromise;
-	}
-
-	/**
-	 * Stellt sicher, dass StPageFlip und der Flipbook-Kern im Dokument des
-	 * Blocks verfügbar sind (im iframe-Editor ist das nicht das Admin-Dokument).
-	 */
-	function ensureLibs( doc ) {
-		const w = doc.defaultView;
-		const load = ( check, url ) =>
-			new Promise( ( resolve, reject ) => {
-				if ( check() ) {
-					return resolve();
-				}
-				const s   = doc.createElement( 'script' );
-				s.src     = url;
-				s.onload  = () => resolve();
-				s.onerror = () => reject( new Error( 'Skript nicht ladbar: ' + url ) );
-				doc.head.appendChild( s );
-			} );
-		return load( () => !! w.St, CFG().pageFlipUrl ).then( () =>
-			load( () => !! w.bdpdfFlipbook, CFG().coreUrl )
-		);
 	}
 
 	/** Rendert das PDF seitenweise und lädt jede Seite zur REST-Route hoch. */
@@ -95,42 +75,24 @@
 	}
 
 	/**
-	 * Frontend-identisches Markup (Buch, Navigation, Fallback-Link).
-	 * Bewusst ohne hidden-Attribute: Sichtbarkeit steuert der Flipbook-Kern
-	 * direkt am DOM, React soll sie bei Re-Renders nicht zurücksetzen.
+	 * Doppelseiten-Aufteilung wie im Frontend-Flipbook: mit Buchdeckel steht
+	 * die erste Seite allein, danach Paare.
+	 *
+	 * @param {number}  count     Seitenzahl.
+	 * @param {boolean} showCover Erste Seite als Buchdeckel.
+	 * @return {number[][]} Liste sichtbarer Seitenpaare (0-basiert).
 	 */
-	function flipbookMarkup( pdfUrl ) {
-		return [
-			el( 'div', { className: 'bdpdf-book', key: 'book' } ),
-			el(
-				'div',
-				{ className: 'bdpdf-nav', key: 'nav' },
-				el(
-					'div',
-					{ className: 'wp-block-button is-style-default' },
-					el(
-						'button',
-						{ type: 'button', className: 'bdpdf-prev wp-block-button__link wp-element-button' },
-						'‹ ' + __( 'Zurück', 'bdpdf' )
-					)
-				),
-				el( 'span', { className: 'bdpdf-pageinfo', 'aria-live': 'polite' } ),
-				el(
-					'div',
-					{ className: 'wp-block-button is-style-default' },
-					el(
-						'button',
-						{ type: 'button', className: 'bdpdf-next wp-block-button__link wp-element-button' },
-						__( 'Weiter', 'bdpdf' ) + ' ›'
-					)
-				)
-			),
-			el(
-				'p',
-				{ className: 'bdpdf-fallback', key: 'fallback' },
-				el( 'a', { href: pdfUrl, download: true }, __( 'PDF herunterladen', 'bdpdf' ) )
-			),
-		];
+	function bdpdfSpreads( count, showCover ) {
+		const out = [];
+		let start = 0;
+		if ( showCover && count > 0 ) {
+			out.push( [ 0 ] );
+			start = 1;
+		}
+		for ( let i = start; i < count; i += 2 ) {
+			out.push( i + 1 < count ? [ i, i + 1 ] : [ i ] );
+		}
+		return out;
 	}
 
 	registerBlockType( 'bdpdf/flipbook', {
@@ -139,21 +101,16 @@
 			const blockProps = useBlockProps( {
 				className: 'bdpdf-flipbook bdpdf-editor',
 				'data-bdpdf-appearance': attributes.appearanceMode || 'auto',
-				// Klick irgendwo im Block (auch auf Karte/Padding) waehlt den
-				// Block aus – das Flipbook schluckt sonst die Auswahl.
-				onClick: function () {
-					wp.data.dispatch( 'core/block-editor' ).selectBlock( props.clientId );
-				},
 			} );
 
-			const [ status, setStatus ]     = useState( 'leer' ); // leer | prueft | rendert | bereit | fehler
-			const [ progress, setProgress ] = useState( { done: 0, total: 0 } );
-			const [ pages, setPages ]       = useState( null );
-			const rootRef = useRef( null );
-			const instRef = useRef( null );
+			const [ status, setStatus ]       = useState( 'leer' ); // leer | prueft | rendert | bereit | fehler
+			const [ progress, setProgress ]   = useState( { done: 0, total: 0 } );
+			const [ pages, setPages ]         = useState( null );
+			const [ spreadIdx, setSpreadIdx ] = useState( 0 );
 
 			const onSelect = function ( media ) {
 				setPages( null );
+				setSpreadIdx( 0 );
 				setStatus( 'prueft' );
 				setAttributes( {
 					pdfId: media.id,
@@ -162,7 +119,7 @@
 				} );
 			};
 
-			// 1) Nach Auswahl: Status prüfen, bei Bedarf rendern und hochladen.
+			// Nach Auswahl: Status prüfen, bei Bedarf rendern und hochladen.
 			useEffect( () => {
 				if ( ! attributes.pdfId ) {
 					setStatus( 'leer' );
@@ -177,7 +134,7 @@
 							return;
 						}
 						if ( info.count > 0 ) {
-							setPages( { urls: info.urls, width: info.width, height: info.height } );
+							setPages( info.urls );
 							setStatus( 'bereit' );
 							return;
 						}
@@ -189,7 +146,7 @@
 						} );
 						const done = await apiFetch( { path: '/bdpdf/v1/pages/' + attributes.pdfId } );
 						if ( ! cancelled ) {
-							setPages( { urls: done.urls, width: done.width, height: done.height } );
+							setPages( done.urls );
 							setStatus( 'bereit' );
 						}
 					} catch ( err ) {
@@ -205,47 +162,10 @@
 				};
 			}, [ attributes.pdfId ] );
 
-			// 2) Sobald Seiten bereit sind: echtes Flipbook wie im Frontend aufbauen.
+			// Buchdeckel-Wechsel: Ansicht auf den Anfang zurücksetzen.
 			useEffect( () => {
-				if ( 'bereit' !== status || ! pages || ! rootRef.current ) {
-					return;
-				}
-				const root = rootRef.current;
-				let disposed = false;
-				ensureLibs( root.ownerDocument )
-					.then( () => {
-						if ( disposed ) {
-							return;
-						}
-						const w = root.ownerDocument.defaultView;
-						instRef.current = w.bdpdfFlipbook.init( root, pages.urls, {
-							pageWidth: pages.width,
-							pageHeight: pages.height,
-							showCover: !! attributes.showCover,
-						} );
-					} )
-					.catch( ( err ) => {
-						// eslint-disable-next-line no-console
-						console.error( '[bdpdf]', err );
-					} );
-				return () => {
-					disposed = true;
-					if ( instRef.current ) {
-						if ( instRef.current.resizeObserver ) {
-							instRef.current.resizeObserver.disconnect();
-						}
-						try {
-							instRef.current.pageFlip.destroy();
-						} catch ( e ) {} // eslint-disable-line no-empty
-						instRef.current = null;
-					}
-					const book = root.querySelector( '.bdpdf-book' );
-					if ( book ) {
-						book.hidden = true;
-						book.innerHTML = '';
-					}
-				};
-			}, [ status, pages, attributes.showCover ] );
+				setSpreadIdx( 0 );
+			}, [ attributes.showCover ] );
 
 			if ( ! attributes.pdfUrl ) {
 				return el(
@@ -277,9 +197,88 @@
 				statusText = __( 'Rendern fehlgeschlagen – Details in der Browser-Konsole.', 'bdpdf' );
 			}
 
+			// Vorschau-Inhalt: Doppelseite (React, ohne StPageFlip).
+			let inhalt;
+			if ( 'bereit' === status && pages ) {
+				const alle    = bdpdfSpreads( pages.length, !! attributes.showCover );
+				const idx     = Math.min( spreadIdx, alle.length - 1 );
+				const spread  = alle[ idx ];
+				const letzte  = spread[ spread.length - 1 ] + 1;
+				const info    = 1 === spread.length
+					? `Seite ${ spread[ 0 ] + 1 } / ${ pages.length }`
+					: `Seiten ${ spread[ 0 ] + 1 }–${ letzte } / ${ pages.length }`;
+				inhalt = [
+					el(
+						'div',
+						{ className: 'bdpdf-book bdpdf-book-static', key: 'book' },
+						spread.map( ( p ) =>
+							el(
+								'div',
+								{ className: 'bdpdf-page', key: 'p' + p },
+								el( 'img', { src: pages[ p ], alt: '' } )
+							)
+						)
+					),
+					el(
+						'div',
+						{ className: 'bdpdf-nav', key: 'nav' },
+						el(
+							'div',
+							{ className: 'wp-block-button is-style-default' },
+							el(
+								'button',
+								{
+									type: 'button',
+									className: 'bdpdf-prev wp-block-button__link wp-element-button',
+									disabled: idx <= 0,
+									onClick: () => setSpreadIdx( Math.max( 0, idx - 1 ) ),
+								},
+								'‹ ' + __( 'Zurück', 'bdpdf' )
+							)
+						),
+						el( 'span', { className: 'bdpdf-pageinfo' }, info ),
+						el(
+							'div',
+							{ className: 'wp-block-button is-style-default' },
+							el(
+								'button',
+								{
+									type: 'button',
+									className: 'bdpdf-next wp-block-button__link wp-element-button',
+									disabled: idx >= alle.length - 1,
+									onClick: () => setSpreadIdx( Math.min( alle.length - 1, idx + 1 ) ),
+								},
+								__( 'Weiter', 'bdpdf' ) + ' ›'
+							)
+						)
+					),
+					el(
+						'p',
+						{ className: 'bdpdf-fallback', key: 'fallback' },
+						el( 'a', { href: attributes.pdfUrl, download: true }, __( 'PDF herunterladen', 'bdpdf' ) )
+					),
+				];
+			} else {
+				inhalt = [
+					el(
+						'div',
+						{ className: 'bdpdf-loader', key: 'loader' },
+						'fehler' !== status ? el( Spinner, { key: 'spin' } ) : null,
+						el( 'p', { className: 'bdpdf-loader-text' }, statusText ),
+						'rendert' === status
+							? el( 'progress', {
+								className: 'bdpdf-progress',
+								max: progress.total || 1,
+								value: progress.done,
+							} )
+							: null
+					),
+				];
+			}
+
 			return el(
 				'div',
-				Object.assign( {}, blockProps, { ref: rootRef } ),
+				blockProps,
 				el(
 					BlockControls,
 					{ group: 'other' },
@@ -335,23 +334,7 @@
 						} )
 					)
 				),
-				'bereit' === status
-					? flipbookMarkup( attributes.pdfUrl )
-					: [
-						el(
-							'div',
-							{ className: 'bdpdf-loader', key: 'loader' },
-							'fehler' !== status ? el( Spinner, { key: 'spin' } ) : null,
-							el( 'p', { className: 'bdpdf-loader-text' }, statusText ),
-							'rendert' === status
-								? el( 'progress', {
-									className: 'bdpdf-progress',
-									max: progress.total || 1,
-									value: progress.done,
-								} )
-								: null
-						),
-					]
+				inhalt
 			);
 		},
 		save: function () {

@@ -1,10 +1,11 @@
 /**
- * Gemeinsamer Flipbook-Kern für Frontend und Editor.
+ * Flipbook-Kern für das Frontend.
  *
  * Baut aus fertigen Seitenbild-URLs das StPageFlip-Buch im HTML-Modus auf und
- * verdrahtet Navigation, Seitenanzeige und Tastatur. Läuft als klassisches
- * Skript und funktioniert auch mit Elementen aus einem Editor-iframe
- * (alle DOM-Zugriffe über root.ownerDocument).
+ * verdrahtet Navigation, Seitenanzeige und Tastatur. Bewusst NICHT im Editor
+ * verwendet: StPageFlips globale Event-Handler schlucken Klicks und brechen
+ * Gutenbergs Popover-Mechanik (Werkzeugleiste). Der Editor zeigt stattdessen
+ * eine statische Doppelseiten-Ansicht mit denselben Klassen (editor.js).
  *
  * @package bdpdf
  */
@@ -39,6 +40,8 @@
 		const pageinfo = root.querySelector( '.bdpdf-pageinfo' );
 		const btnPrev  = root.querySelector( '.bdpdf-prev' );
 		const btnNext  = root.querySelector( '.bdpdf-next' );
+
+		bookEl.innerHTML = ''; // Sicherheitsnetz: nie auf Altbestand initialisieren.
 
 		const pageEls = pages.map( ( src ) => {
 			const pageEl     = doc.createElement( 'div' );
