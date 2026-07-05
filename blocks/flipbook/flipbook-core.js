@@ -101,8 +101,28 @@
 			}
 		} );
 
+		// Grösse neu berechnen, wenn sich die Containerbreite ohne Fenster-Resize
+		// ändert (z.B. Padding/Breite aus dem Stil-Tab im Editor) – sonst
+		// überlappt das Buch die Navigation.
+		let resizeObserver = null;
+		const view = doc.defaultView || win;
+		if ( view.ResizeObserver ) {
+			let lastW = bookEl.clientWidth;
+			resizeObserver = new view.ResizeObserver( () => {
+				const w = bookEl.clientWidth;
+				if ( Math.abs( w - lastW ) > 1 ) {
+					lastW = w;
+					try {
+						pageFlip.getUI().update();
+					} catch ( e ) {} // eslint-disable-line no-empty
+				}
+			} );
+			resizeObserver.observe( bookEl );
+		}
+
 		return {
 			pageFlip,
+			resizeObserver,
 			setPageSrc: ( i, src ) => {
 				const img = pageEls[ i ] && pageEls[ i ].querySelector( 'img' );
 				if ( img && img.src !== src ) {

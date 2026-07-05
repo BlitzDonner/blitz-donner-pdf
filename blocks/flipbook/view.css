@@ -147,10 +147,18 @@
 	background: var(--bdpdf-card);
 	color: var(--bdpdf-text);
 	font-family: var(--bdpdf-font);
-	font-size: var(--bdpdf-body-size);
 	line-height: var(--bdpdf-line);
 	border-radius: var(--bdpdf-radius-card);
 	padding: var(--bdpdf-card-pad);
+}
+
+/* Schriftgrösse absichtlich mit Spezifität 0 (:where), damit die
+   Stil-Tab-Einstellung (Preset-Klasse oder Inline-Style) immer gewinnt.
+   Innen rechnen pageinfo/Buttons in em und skalieren mit. */
+:where(.wp-block-bdpdf-flipbook[data-bdpdf-appearance="light"],
+	.wp-block-bdpdf-flipbook[data-bdpdf-appearance="dark"],
+	.wp-block-bdpdf-flipbook[data-bdpdf-appearance="auto"]) {
+	font-size: var(--bdpdf-body-size);
 }
 
 .wp-block-bdpdf-flipbook[data-bdpdf-appearance="light"] .bdpdf-loader-text,
@@ -161,7 +169,7 @@
 .wp-block-bdpdf-flipbook[data-bdpdf-appearance="auto"] .bdpdf-pageinfo {
 	color: var(--bdpdf-label) !important;
 	font-family: var(--bdpdf-font) !important;
-	font-size: 0.9375rem !important;
+	font-size: 0.882em !important; /* relativ, folgt der Block-Schriftgrösse */
 }
 
 .wp-block-bdpdf-flipbook[data-bdpdf-appearance="light"] .bdpdf-page,
@@ -195,7 +203,7 @@
 	margin: 0 !important;
 	padding: 0.7rem 1.5rem !important;
 	font-family: var(--bdpdf-font) !important;
-	font-size: var(--bdpdf-body-size) !important;
+	font-size: 1em !important; /* relativ, folgt der Block-Schriftgrösse */
 	font-weight: 600 !important;
 	line-height: 1.2 !important;
 	text-decoration: none !important;
@@ -240,7 +248,7 @@
 .wp-block-bdpdf-flipbook[data-bdpdf-appearance="auto"] .bdpdf-fallback a {
 	color: var(--bdpdf-accent) !important;
 	font-family: var(--bdpdf-font) !important;
-	font-size: 0.85rem !important;
+	font-size: 0.8em !important; /* relativ, folgt der Block-Schriftgrösse */
 	text-decoration: none !important;
 }
 

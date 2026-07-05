@@ -139,6 +139,11 @@
 			const blockProps = useBlockProps( {
 				className: 'bdpdf-flipbook bdpdf-editor',
 				'data-bdpdf-appearance': attributes.appearanceMode || 'auto',
+				// Klick irgendwo im Block (auch auf Karte/Padding) waehlt den
+				// Block aus – das Flipbook schluckt sonst die Auswahl.
+				onClick: function () {
+					wp.data.dispatch( 'core/block-editor' ).selectBlock( props.clientId );
+				},
 			} );
 
 			const [ status, setStatus ]     = useState( 'leer' ); // leer | prueft | rendert | bereit | fehler
@@ -225,7 +230,10 @@
 					} );
 				return () => {
 					disposed = true;
-					if ( instRef.current && instRef.current.pageFlip ) {
+					if ( instRef.current ) {
+						if ( instRef.current.resizeObserver ) {
+							instRef.current.resizeObserver.disconnect();
+						}
 						try {
 							instRef.current.pageFlip.destroy();
 						} catch ( e ) {} // eslint-disable-line no-empty

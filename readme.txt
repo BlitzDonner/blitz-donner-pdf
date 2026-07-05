@@ -4,7 +4,7 @@ Tags: pdf, flipbook, block, media
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.3.0
+Stable tag: 0.3.1
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -42,6 +42,11 @@ Nein. Alle Bibliotheken liegen im Plugin, das PDF kommt aus der eigenen Mediathe
 Alle Seiten werden im Browser vorgerendert. Bis etwa 60 Seiten bleibt die Ladezeit angenehm; darüber steigt sie spürbar.
 
 == Changelog ==
+
+= 0.3.1 =
+* Editor: Buchgrösse wird bei Padding-/Breitenänderungen aus dem Stil-Tab neu berechnet (ResizeObserver) – keine Überlappung mit der Navigation mehr.
+* Stil-Tab-Schriftgrösse wirkt jetzt: Skin-Schriftgrösse mit Spezifität 0, Navigation und Seitenanzeige skalieren in em mit.
+* Editor: Klick auf den Blockhintergrund wählt den Block aus.
 
 = 0.3.0 =
 * Vier Darstellungsmodi wie bei Blitz & Donner Forms: Theme (Standard-Auswahl im Stil-Tab), Automatisch, Hell, Dunkel. Hell/Dunkel übernehmen die Forms-Optik 1:1 (Tokens, Karte, Buttons); Theme fügt kein eigenes Erscheinungs-CSS hinzu – alles kommt aus theme.json.
