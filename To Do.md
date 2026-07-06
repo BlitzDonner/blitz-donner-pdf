@@ -1,0 +1,1 @@
+Das PDF-Plugin braucht im Backend eine Einstellungsseite, wo man einstellen kann, welche Style-Option defaultmäßig genutzt werden soll, wenn das Plugin auf einer Seite eingebaut wird.

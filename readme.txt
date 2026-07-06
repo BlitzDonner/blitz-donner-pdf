@@ -4,7 +4,7 @@ Tags: pdf, flipbook, block, media
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.4.1
+Stable tag: 0.4.2
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -42,6 +42,9 @@ Nein. Alle Bibliotheken liegen im Plugin, das PDF kommt aus der eigenen Mediathe
 Alle Seiten werden im Browser vorgerendert. Bis etwa 60 Seiten bleibt die Ladezeit angenehm; darüber steigt sie spürbar.
 
 == Changelog ==
+
+= 0.4.2 =
+* Auto-Updates ohne Lizenz-Token: Der Update-Client fragt den Server auch ohne hinterlegtes Token an; das Plugin ist auf dem Blitz-&-Donner-Update-Server als frei markiert. Signatur- und Prüfsummen-Schutz bleiben unverändert aktiv.
 
 = 0.4.1 =
 * Plugin-Slug korrigiert: neu blitz-donner-pdf (Konvention Marke + Funktion, wie blitz-donner-forms); bdpdf bleibt Code- und Datenbank-Präfix. Hauptdatei heisst neu blitz-donner-pdf.php, Text-Domain folgt dem Slug. Block-Name bdpdf/flipbook und alle gespeicherten Daten bleiben unverändert – bestehender Content ist nicht betroffen.
