@@ -7,6 +7,7 @@ Der Block «BD PDF» ist dynamisch (`render.php`). Nach der PDF-Auswahl rendert 
 ## Komponenten
 - `blitz-donner-pdf.php` – Bootstrap, registriert Block, Editor-Konfiguration, Aufräumen beim Attachment-Löschen
 - `includes/rest-pages.php` – REST-Route `bdpdf/v1/pages/<id>` (GET Status, POST Seitenbild; Upload-Recht + JPEG-Validierung)
+- `includes/class-bd-update-client.php` – eingebetteter BD-Update-Client (kanonische Quelle: Repo bd-plugin-updater); registriert auf `plugins_loaded`
 - `readme.txt` – WordPress.org-Readme (Directory-tauglich)
 - `blocks/flipbook/block.json` – Block-Metadaten (apiVersion 3, dynamisch, Titel «BD PDF», Stil-Supports)
 - `blocks/flipbook/render.php` – Frontend-Markup mit Escaping, liefert vorgerenderte Seiten-URLs
