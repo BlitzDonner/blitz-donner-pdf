@@ -29,6 +29,9 @@ Themes können die Hell/Dunkel-Palette ohne eigenes CSS übersteuern – via `se
 2. PDF aus der Mediathek wählen oder hochladen.
 3. Optional in den Block-Einstellungen: «Erste Seite als Buchdeckel» abschalten.
 Im Frontend: Blättern per Knopf, Pfeiltasten (bei fokussiertem Block) oder Ziehen an der Seitenecke. Ohne JavaScript erscheint ein Download-Link.
+## Auto-Updates
+Das Plugin ist auf dem Update-Server (plugins.blitzdonner.ch) als **freies Plugin** markiert: Installationen erhalten Auto-Updates ohne Lizenz-Token. Der eingebettete Client fragt tokenlos an, der Server entscheidet. Ed25519-Pflichtsignatur und SHA-256-Prüfung gelten unverändert; ein hinterlegtes Token (`BDPDF_LICENSE_TOKEN`) funktioniert weiterhin, ist aber nicht nötig. Achtung: Die Klasse `BD_Update_Client` wird von allen B&D-Plugins geteilt (class_exists, erste Kopie gewinnt) – Änderungen an der kanonischen Quelle (Repo bd-plugin-updater) müssen in alle Plugins mit eingebetteter Kopie ausgerollt werden. Release: `tools/release.sh "Changelog"`.
+
 ## Anforderungen
 WordPress 6.5+ (wegen `viewScriptModule`), PHP 7.4+.
 ## Bekannte Grenzen
