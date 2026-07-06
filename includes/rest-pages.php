@@ -81,7 +81,7 @@ function bdpdf_rest_save_page( $request ) {
 	$image  = (string) $request->get_param( 'image' );
 
 	if ( $page < 1 || $total < 1 || $page > $total || $total > 2000 ) {
-		return new WP_Error( 'bdpdf_bad_page', __( 'Ungültige Seitennummer.', 'bdpdf' ), array( 'status' => 400 ) );
+		return new WP_Error( 'bdpdf_bad_page', __( 'Ungültige Seitennummer.', 'blitz-donner-pdf' ), array( 'status' => 400 ) );
 	}
 
 	// Data-URL-Präfix abtrennen und Bilddaten prüfen: muss ein echtes JPEG
@@ -89,19 +89,19 @@ function bdpdf_rest_save_page( $request ) {
 	$image = preg_replace( '#^data:image/jpeg;base64,#', '', $image );
 	$data  = base64_decode( $image, true );
 	if ( false === $data || strlen( $data ) > 6 * MB_IN_BYTES ) {
-		return new WP_Error( 'bdpdf_bad_image', __( 'Ungültige Bilddaten.', 'bdpdf' ), array( 'status' => 400 ) );
+		return new WP_Error( 'bdpdf_bad_image', __( 'Ungültige Bilddaten.', 'blitz-donner-pdf' ), array( 'status' => 400 ) );
 	}
 	$info = getimagesizefromstring( $data );
 	if ( false === $info || 'image/jpeg' !== $info['mime'] || $info[0] > 4096 || $info[1] > 4096 ) {
-		return new WP_Error( 'bdpdf_bad_image', __( 'Ungültige Bilddaten.', 'bdpdf' ), array( 'status' => 400 ) );
+		return new WP_Error( 'bdpdf_bad_image', __( 'Ungültige Bilddaten.', 'blitz-donner-pdf' ), array( 'status' => 400 ) );
 	}
 
 	$dir = bdpdf_pages_base( $att_id );
 	if ( ! wp_mkdir_p( $dir ) ) {
-		return new WP_Error( 'bdpdf_fs', __( 'Ablageordner konnte nicht erstellt werden.', 'bdpdf' ), array( 'status' => 500 ) );
+		return new WP_Error( 'bdpdf_fs', __( 'Ablageordner konnte nicht erstellt werden.', 'blitz-donner-pdf' ), array( 'status' => 500 ) );
 	}
 	if ( false === file_put_contents( $dir . '/page-' . $page . '.jpg', $data ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- eigener Upload-Ordner.
-		return new WP_Error( 'bdpdf_fs', __( 'Seitenbild konnte nicht gespeichert werden.', 'bdpdf' ), array( 'status' => 500 ) );
+		return new WP_Error( 'bdpdf_fs', __( 'Seitenbild konnte nicht gespeichert werden.', 'blitz-donner-pdf' ), array( 'status' => 500 ) );
 	}
 
 	// Nach der letzten Seite die Metadaten setzen – erst dann gilt das

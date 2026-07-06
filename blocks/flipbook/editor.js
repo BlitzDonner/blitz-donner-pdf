@@ -174,7 +174,7 @@
 					el( MediaPlaceholder, {
 						icon: 'book',
 						labels: {
-							title: __( 'BD PDF', 'bdpdf' ),
+							title: __( 'BD PDF', 'blitz-donner-pdf' ),
 							instructions: __(
 								'Wähle ein PDF aus der Mediathek oder lade eines hoch. Es wird sofort gerendert und als blätterbares Buch angezeigt.',
 								'bdpdf'
@@ -187,14 +187,14 @@
 				);
 			}
 
-			let statusText = __( 'PDF wird geladen …', 'bdpdf' );
+			let statusText = __( 'PDF wird geladen …', 'blitz-donner-pdf' );
 			if ( 'prueft' === status ) {
-				statusText = __( 'Prüfe vorgerenderte Seiten …', 'bdpdf' );
+				statusText = __( 'Prüfe vorgerenderte Seiten …', 'blitz-donner-pdf' );
 			} else if ( 'rendert' === status ) {
-				statusText = __( 'Seiten werden gerendert und gespeichert …', 'bdpdf' )
+				statusText = __( 'Seiten werden gerendert und gespeichert …', 'blitz-donner-pdf' )
 					+ ( progress.total ? ` (${ progress.done }/${ progress.total })` : '' );
 			} else if ( 'fehler' === status ) {
-				statusText = __( 'Rendern fehlgeschlagen – Details in der Browser-Konsole.', 'bdpdf' );
+				statusText = __( 'Rendern fehlgeschlagen – Details in der Browser-Konsole.', 'blitz-donner-pdf' );
 			}
 
 			// Vorschau-Inhalt: Doppelseite (React, ohne StPageFlip).
@@ -233,7 +233,7 @@
 									disabled: idx <= 0,
 									onClick: () => setSpreadIdx( Math.max( 0, idx - 1 ) ),
 								},
-								'‹ ' + __( 'Zurück', 'bdpdf' )
+								'‹ ' + __( 'Zurück', 'blitz-donner-pdf' )
 							)
 						),
 						el( 'span', { className: 'bdpdf-pageinfo' }, info ),
@@ -248,14 +248,14 @@
 									disabled: idx >= alle.length - 1,
 									onClick: () => setSpreadIdx( Math.min( alle.length - 1, idx + 1 ) ),
 								},
-								__( 'Weiter', 'bdpdf' ) + ' ›'
+								__( 'Weiter', 'blitz-donner-pdf' ) + ' ›'
 							)
 						)
 					),
 					el(
 						'p',
 						{ className: 'bdpdf-fallback', key: 'fallback' },
-						el( 'a', { href: attributes.pdfUrl, download: true }, __( 'PDF herunterladen', 'bdpdf' ) )
+						el( 'a', { href: attributes.pdfUrl, download: true }, __( 'PDF herunterladen', 'blitz-donner-pdf' ) )
 					),
 				];
 			} else {
@@ -288,7 +288,7 @@
 						accept: 'application/pdf',
 						allowedTypes: ALLOWED_TYPES,
 						onSelect: onSelect,
-						name: __( 'PDF ersetzen', 'bdpdf' ),
+						name: __( 'PDF ersetzen', 'blitz-donner-pdf' ),
 					} )
 				),
 				el(
@@ -296,10 +296,10 @@
 					null,
 					el(
 						PanelBody,
-						{ title: __( 'Flipbook-Einstellungen', 'bdpdf' ) },
+						{ title: __( 'Flipbook-Einstellungen', 'blitz-donner-pdf' ) },
 						el( ToggleControl, {
-							label: __( 'Erste Seite als Buchdeckel', 'bdpdf' ),
-							help: __( 'Zeigt die erste Seite einzeln, danach Doppelseiten.', 'bdpdf' ),
+							label: __( 'Erste Seite als Buchdeckel', 'blitz-donner-pdf' ),
+							help: __( 'Zeigt die erste Seite einzeln, danach Doppelseiten.', 'blitz-donner-pdf' ),
 							checked: !! attributes.showCover,
 							onChange: function ( value ) {
 								setAttributes( { showCover: value } );
@@ -314,19 +314,19 @@
 					{ group: 'styles' },
 					el(
 						PanelBody,
-						{ title: __( 'Erscheinungsbild', 'bdpdf' ), initialOpen: true },
+						{ title: __( 'Erscheinungsbild', 'blitz-donner-pdf' ), initialOpen: true },
 						el( SelectControl, {
-							label: __( 'Farbmodus', 'bdpdf' ),
+							label: __( 'Farbmodus', 'blitz-donner-pdf' ),
 							value: attributes.appearanceMode || 'auto',
 							help:
 								'theme' === ( attributes.appearanceMode || 'auto' )
-									? __( 'Farben, Buttons und Typografie kommen vollständig aus dem Theme (theme.json). Das Plugin fügt kein eigenes CSS hinzu.', 'bdpdf' )
+									? __( 'Farben, Buttons und Typografie kommen vollständig aus dem Theme (theme.json). Das Plugin fügt kein eigenes CSS hinzu.', 'blitz-donner-pdf' )
 									: undefined,
 							options: [
-								{ label: __( 'Theme (Standard)', 'bdpdf' ), value: 'theme' },
-								{ label: __( 'Automatisch (System)', 'bdpdf' ), value: 'auto' },
-								{ label: __( 'Hell', 'bdpdf' ), value: 'light' },
-								{ label: __( 'Dunkel', 'bdpdf' ), value: 'dark' },
+								{ label: __( 'Theme (Standard)', 'blitz-donner-pdf' ), value: 'theme' },
+								{ label: __( 'Automatisch (System)', 'blitz-donner-pdf' ), value: 'auto' },
+								{ label: __( 'Hell', 'blitz-donner-pdf' ), value: 'light' },
+								{ label: __( 'Dunkel', 'blitz-donner-pdf' ), value: 'dark' },
 							],
 							onChange: function ( value ) {
 								setAttributes( { appearanceMode: value || 'auto' } );

@@ -1,11 +1,11 @@
 # Blitz & Donner PDF
-WordPress-Plugin von Blitz & Donner (Slug und Prefix: `bdpdf`). Stellt den Gutenberg-Block «PDF-Flipbook» bereit: Ein PDF aus der Mediathek wird im Frontend als blätterbares Buch mit Umblätter-Animation angezeigt.
+WordPress-Plugin von Blitz & Donner (Slug: `blitz-donner-pdf`, Code-/DB-Prefix: `bdpdf`). Stellt den Gutenberg-Block «PDF-Flipbook» bereit: Ein PDF aus der Mediathek wird im Frontend als blätterbares Buch mit Umblätter-Animation angezeigt.
 ## Namenskonvention
-Alle B&D-Plugins heissen «Blitz & Donner …» (zuerst die Marke, dann die Funktion) und tragen einen Slug-Prefix von mindestens 5 Zeichen, beginnend mit `bd`. Hier: `bdpdf`. Der Prefix gilt für Slug, Textdomain, Block-Namespace, CSS-Klassen und PHP-Symbole.
+Alle B&D-Plugins heissen «Blitz & Donner …» (zuerst die Marke, dann die Funktion) – der Slug ist die Marke plus Funktion (hier `blitz-donner-pdf`, wie `blitz-donner-forms`). Dazu kommt ein Code-Prefix von mindestens 5 Zeichen, beginnend mit `bd` (hier `bdpdf`): er gilt für Block-Namespace, REST-Namespace, CSS-Klassen, Options-/Meta-Schlüssel und PHP-Symbole. Die Textdomain folgt dem Slug.
 ## Funktionsweise
 Der Block «BD PDF» ist dynamisch (`render.php`). Nach der PDF-Auswahl rendert der Editor alle Seiten einmal mit PDF.js und lädt sie über die REST-Route `bdpdf/v1/pages` hoch (Ablage `uploads/bdpdf/<attachment-id>/page-<n>.jpg`, Metadaten am Attachment). Das Frontend zeigt die vorgerenderten Bilder sofort; nur wenn der Viewport mehr Pixel braucht als gespeichert, rendert PDF.js die sichtbaren Seiten nach. Der Editor zeigt eine Doppelseiten-Vorschau mit identischem Markup und Stylesheet, aber ohne StPageFlip (dessen Event-Handler brechen Gutenbergs Werkzeugleisten-Popover); geblättert wird dort über dieselben Knöpfe. Beide Bibliotheken sind lokal gebündelt – kein CDN, keine externen Requests.
 ## Komponenten
-- `bdpdf.php` – Bootstrap, registriert Block, Editor-Konfiguration, Aufräumen beim Attachment-Löschen
+- `blitz-donner-pdf.php` – Bootstrap, registriert Block, Editor-Konfiguration, Aufräumen beim Attachment-Löschen
 - `includes/rest-pages.php` – REST-Route `bdpdf/v1/pages/<id>` (GET Status, POST Seitenbild; Upload-Recht + JPEG-Validierung)
 - `readme.txt` – WordPress.org-Readme (Directory-tauglich)
 - `blocks/flipbook/block.json` – Block-Metadaten (apiVersion 3, dynamisch, Titel «BD PDF», Stil-Supports)
