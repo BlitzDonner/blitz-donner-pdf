@@ -4,7 +4,7 @@ Tags: pdf, flipbook, block, media
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.7.0
+Stable tag: 0.7.1
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -42,6 +42,9 @@ Nein. Alle Bibliotheken liegen im Plugin, das PDF kommt aus der eigenen Mediathe
 Alle Seiten werden im Browser vorgerendert. Bis etwa 60 Seiten bleibt die Ladezeit angenehm; darüber steigt sie spürbar.
 
 == Changelog ==
+
+= 0.7.1 =
+* Globale Stile im Website-Editor wirken jetzt vollständig: Der Block liest «Block-Abstand» und «Schatten» aus Design → Editor → Stile → Blöcke selbst (live im Editor, per wp_get_global_styles im Frontend). WordPress gibt beide Werte für Blöcke ohne Layout-Support sonst nicht aus.
 
 = 0.7.0 =
 * Editor-Vorschau pixelgleich zum Frontend: gleiche Buchbreite und Seitenverhältnisse wie StPageFlip, einzelne Umschläge liegen wie im Buch auf der rechten (vorn) bzw. linken (hinten) Buchhälfte.

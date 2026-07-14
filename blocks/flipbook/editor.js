@@ -20,10 +20,22 @@
 		wp.blockEditor;
 	const { PanelBody, ToggleControl, SelectControl, Spinner, Button } = wp.components;
 	const { __ } = wp.i18n;
+	const { useSelect } = wp.data;
 	const apiFetch = wp.apiFetch;
 
 	const ALLOWED_TYPES = [ 'application/pdf' ];
 	const CFG = () => window.bdpdfEditor || {};
+
+	/** Preset-Notation var:preset|spacing|50 → var(--wp--preset--spacing--50). */
+	function bdpdfCssVar( wert ) {
+		if ( 'string' !== typeof wert || '' === wert ) {
+			return '';
+		}
+		if ( 0 === wert.indexOf( 'var:' ) ) {
+			return 'var(--wp--' + wert.replace( 'var:', '' ).split( '|' ).join( '--' ) + ')';
+		}
+		return wert;
+	}
 
 	/** PDF.js einmalig laden (ES-Modul per dynamischem Import). */
 	let pdfjsPromise = null;
@@ -147,14 +159,29 @@
 	registerBlockType( 'bdpdf/flipbook', {
 		edit: function ( props ) {
 			const { attributes, setAttributes } = props;
-			// «Block-Abstand» (blockGap) als Variable durchreichen – der Kern
-			// serialisiert ihn ohne Layout-Support nicht selbst.
-			let bdpdfGap = attributes.style && attributes.style.spacing && 'string' === typeof attributes.style.spacing.blockGap
-				? attributes.style.spacing.blockGap
-				: '';
-			if ( bdpdfGap && 0 === bdpdfGap.indexOf( 'var:' ) ) {
-				bdpdfGap = 'var(--wp--' + bdpdfGap.replace( 'var:', '' ).split( '|' ).join( '--' ) + ')';
-			}
+			// Globale Stile für diesen Block (Website-Editor → Stile → Blöcke):
+			// Kern gibt blockGap ohne Layout-Support und Schatten fürs Buch
+			// nicht selbst aus – darum hier LIVE aus dem Datenspeicher lesen.
+			const globalBlock = useSelect( ( select ) => {
+				const core = select( 'core' );
+				const gsId = core.__experimentalGetCurrentGlobalStylesId
+					? core.__experimentalGetCurrentGlobalStylesId()
+					: null;
+				if ( ! gsId ) {
+					return {};
+				}
+				const rec = core.getEditedEntityRecord( 'root', 'globalStyles', gsId );
+				return ( rec && rec.styles && rec.styles.blocks && rec.styles.blocks[ 'bdpdf/flipbook' ] ) || {};
+			}, [] );
+
+			// «Block-Abstand» als Variable durchreichen – der Kern serialisiert
+			// ihn ohne Layout-Support nicht selbst. Kette: Blockwert → globaler
+			// Blockwert → CSS-Fallback (Theme-Gap → 0.75rem).
+			const bdpdfGap = bdpdfCssVar(
+				attributes.style && attributes.style.spacing && 'string' === typeof attributes.style.spacing.blockGap
+					? attributes.style.spacing.blockGap
+					: ( globalBlock.spacing && 'string' === typeof globalBlock.spacing.blockGap ? globalBlock.spacing.blockGap : '' )
+			);
 			const blockProps = useBlockProps( {
 				className: 'bdpdf-flipbook bdpdf-editor',
 				'data-bdpdf-appearance': attributes.appearanceMode || 'theme',
@@ -162,12 +189,17 @@
 			} );
 			// Schatten gehört aufs Buch, nicht auf den Wrapper: den vom
 			// Schatten-Support erzeugten box-shadow in die Variable umleiten,
-			// die view.css auf .bdpdf-page anwendet.
+			// die view.css auf .bdpdf-page anwendet. Fällt der Blockwert weg,
+			// gilt der globale Blockwert aus dem Website-Editor.
 			if ( blockProps.style && blockProps.style.boxShadow ) {
 				blockProps.style = Object.assign( {}, blockProps.style, {
 					'--bdpdf-book-shadow': blockProps.style.boxShadow,
 				} );
 				delete blockProps.style.boxShadow;
+			} else if ( 'string' === typeof globalBlock.shadow && '' !== globalBlock.shadow ) {
+				blockProps.style = Object.assign( {}, blockProps.style || {}, {
+					'--bdpdf-book-shadow': bdpdfCssVar( globalBlock.shadow ),
+				} );
 			}
 
 			const [ status, setStatus ]       = useState( 'leer' ); // leer | prueft | rendert | bereit | fehler

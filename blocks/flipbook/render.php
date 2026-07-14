@@ -64,21 +64,30 @@ if ( ! in_array( $bdpdf_appearance, array( 'theme', 'auto', 'light', 'dark' ), t
 	$bdpdf_appearance = 'theme';
 }
 
-// «Block-Abstand» (blockGap) aus dem Stil-Tab: Kern serialisiert ihn bei
-// Blöcken ohne Layout-Support nicht selbst, darum hier als eigene Variable.
-$bdpdf_gap = isset( $attributes['style']['spacing']['blockGap'] ) && is_string( $attributes['style']['spacing']['blockGap'] )
-	? $attributes['style']['spacing']['blockGap']
-	: '';
-if ( '' !== $bdpdf_gap && 0 === strpos( $bdpdf_gap, 'var:' ) ) {
-	// Preset-Notation var:preset|spacing|50 → var(--wp--preset--spacing--50).
-	$bdpdf_gap = 'var(--wp--' . str_replace( array( 'var:', '|' ), array( '', '--' ), $bdpdf_gap ) . ')';
+// «Block-Abstand» (blockGap): Kern serialisiert ihn bei Blöcken ohne
+// Layout-Support nicht selbst – weder den Blockwert noch den globalen
+// Blockwert aus dem Website-Editor. Kette: Blockwert → globaler Blockwert
+// → CSS-Fallback (Theme-Gap → 0.75rem).
+$bdpdf_gap = isset( $attributes['style']['spacing']['blockGap'] ) ? bdpdf_css_var( $attributes['style']['spacing']['blockGap'] ) : '';
+if ( '' === $bdpdf_gap && function_exists( 'wp_get_global_styles' ) ) {
+	$bdpdf_gap = bdpdf_css_var( wp_get_global_styles( array( 'spacing', 'blockGap' ), array( 'block_name' => 'bdpdf/flipbook' ) ) );
+}
+
+// Schatten aus den GLOBALEN Stilen ebenfalls aufs Buch umleiten (der
+// Blockwert wird weiter unten per str_replace umgeleitet; der Kern legt den
+// globalen Wert sonst als Stylesheet-Regel auf den Wrapper, den view.css
+// bewusst neutralisiert).
+$bdpdf_global_shadow = '';
+if ( empty( $attributes['style']['shadow'] ) && function_exists( 'wp_get_global_styles' ) ) {
+	$bdpdf_global_shadow = bdpdf_css_var( wp_get_global_styles( array( 'shadow' ), array( 'block_name' => 'bdpdf/flipbook' ) ) );
 }
 
 $bdpdf_wrapper = get_block_wrapper_attributes(
 	array(
 		'class'                 => 'bdpdf-flipbook',
 		'data-bdpdf-appearance' => $bdpdf_appearance,
-		'style'                 => '' !== $bdpdf_gap ? '--bdpdf-gap:' . $bdpdf_gap . ';' : '',
+		'style'                 => ( '' !== $bdpdf_gap ? '--bdpdf-gap:' . $bdpdf_gap . ';' : '' )
+			. ( '' !== $bdpdf_global_shadow ? '--bdpdf-book-shadow:' . $bdpdf_global_shadow . ';' : '' ),
 	)
 );
 // Schatten gehört aufs Buch, nicht auf den Wrapper: den vom Schatten-Support

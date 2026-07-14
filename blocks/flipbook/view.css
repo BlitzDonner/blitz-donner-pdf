@@ -22,6 +22,10 @@
 
 .wp-block-bdpdf-flipbook {
 	outline: none;
+	/* Schatten liegt IMMER auf dem Buch (--bdpdf-book-shadow auf .bdpdf-page).
+	   Der Kern legt Schatten-Werte (global wie inline) auf den Wrapper –
+	   hier neutralisiert, sonst schattiert die Blockfläche doppelt. */
+	box-shadow: none !important;
 }
 
 .wp-block-bdpdf-flipbook .bdpdf-loader {
