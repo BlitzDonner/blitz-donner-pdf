@@ -2,7 +2,7 @@
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
 	"name": "bdpdf/flipbook",
-	"version": "0.5.1",
+	"version": "0.6.0",
 	"title": "BD PDF",
 	"category": "media",
 	"icon": "book",
@@ -37,6 +37,10 @@
 		"pageLayout": {
 			"type": "string",
 			"default": "single"
+		},
+		"useDemo": {
+			"type": "boolean",
+			"default": false
 		}
 	},
 	"supports": {
@@ -74,5 +78,11 @@
 		"file:./flipbook-core.js"
 	],
 	"style": "file:./view.css",
-	"viewScriptModule": "file:./view.mjs"
+	"viewScriptModule": "file:./view.mjs",
+	"example": {
+		"attributes": {
+			"useDemo": true
+		},
+		"viewportWidth": 900
+	}
 }

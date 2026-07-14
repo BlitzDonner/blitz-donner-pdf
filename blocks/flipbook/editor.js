@@ -18,7 +18,7 @@
 	const { useState, useEffect } = wp.element;
 	const { useBlockProps, MediaPlaceholder, MediaReplaceFlow, BlockControls, InspectorControls } =
 		wp.blockEditor;
-	const { PanelBody, ToggleControl, SelectControl, Spinner } = wp.components;
+	const { PanelBody, ToggleControl, SelectControl, Spinner, Button } = wp.components;
 	const { __ } = wp.i18n;
 	const apiFetch = wp.apiFetch;
 
@@ -158,6 +158,8 @@
 			const [ pagesMeta, setPagesMeta ] = useState( { coverSingle: false } );
 			const [ spreadIdx, setSpreadIdx ] = useState( 0 );
 			const pageLayout = attributes.pageLayout || 'single';
+			const istDemo    = !! attributes.useDemo && ! attributes.pdfId;
+			const pdfHref    = attributes.pdfUrl || ( istDemo && CFG().demo ? CFG().demo.pdfUrl : '' );
 
 			const onSelect = function ( media ) {
 				setPages( null );
@@ -167,6 +169,7 @@
 					pdfId: media.id,
 					pdfUrl: media.url,
 					pdfTitle: media.title || '',
+					useDemo: false,
 				} );
 			};
 
@@ -175,6 +178,17 @@
 			// eingestellten, wird neu gerendert; überzählige Alt-Dateien
 			// entfernt der Server erst nach erfolgreichem Abschluss.
 			useEffect( () => {
+				// Beispiel-Modus: gebündelte Demo-Bilder, kein REST, kein Rendern.
+				// Füllt auch die Block-Vorschau (example in block.json) – dort
+				// sind keine REST-Aufrufe möglich.
+				if ( attributes.useDemo && ! attributes.pdfId ) {
+					const demo = CFG().demo || {};
+					setPages( demo.pages || [] );
+					setPagesMeta( { coverSingle: false } );
+					setSpreadIdx( 0 );
+					setStatus( 'bereit' );
+					return;
+				}
 				if ( ! attributes.pdfId ) {
 					setStatus( 'leer' );
 					return;
@@ -218,30 +232,41 @@
 				return () => {
 					cancelled = true;
 				};
-			}, [ attributes.pdfId, pageLayout ] );
+			}, [ attributes.pdfId, pageLayout, attributes.useDemo ] );
 
 			// Buchdeckel-Wechsel: Ansicht auf den Anfang zurücksetzen.
 			useEffect( () => {
 				setSpreadIdx( 0 );
 			}, [ attributes.showCover ] );
 
-			if ( ! attributes.pdfUrl ) {
+			if ( ! attributes.pdfUrl && ! attributes.useDemo ) {
 				return el(
 					'div',
 					blockProps,
-					el( MediaPlaceholder, {
-						icon: 'book',
-						labels: {
-							title: __( 'BD PDF', 'blitz-donner-pdf' ),
-							instructions: __(
-								'Wähle ein PDF aus der Mediathek oder lade eines hoch. Es wird sofort gerendert und als blätterbares Buch angezeigt.',
-								'bdpdf'
-							),
+					el(
+						MediaPlaceholder,
+						{
+							icon: 'book',
+							labels: {
+								title: __( 'BD PDF', 'blitz-donner-pdf' ),
+								instructions: __(
+									'Wähle ein PDF aus der Mediathek oder lade eines hoch. Es wird sofort gerendert und als blätterbares Buch angezeigt.',
+									'blitz-donner-pdf'
+								),
+							},
+							accept: 'application/pdf',
+							allowedTypes: ALLOWED_TYPES,
+							onSelect: onSelect,
 						},
-						accept: 'application/pdf',
-						allowedTypes: ALLOWED_TYPES,
-						onSelect: onSelect,
-					} )
+						el(
+							Button,
+							{
+								variant: 'secondary',
+								onClick: () => setAttributes( { useDemo: true } ),
+							},
+							__( 'Mit Beispiel-PDF ausprobieren', 'blitz-donner-pdf' )
+						)
+					)
 				);
 			}
 
@@ -316,7 +341,7 @@
 					el(
 						'p',
 						{ className: 'bdpdf-fallback', key: 'fallback' },
-						el( 'a', { href: attributes.pdfUrl, download: true }, __( 'PDF herunterladen', 'blitz-donner-pdf' ) )
+						el( 'a', { href: pdfHref, download: true }, __( 'PDF herunterladen', 'blitz-donner-pdf' ) )
 					),
 				];
 			} else {
@@ -358,9 +383,18 @@
 					el(
 						PanelBody,
 						{ title: __( 'Flipbook-Einstellungen', 'blitz-donner-pdf' ) },
+						istDemo
+							? el(
+								'p',
+								{ className: 'components-base-control__help' },
+								__( 'Beispiel-PDF aktiv: Einstellungen wirken sofort auf das Beispiel. Über «PDF ersetzen» in der Werkzeugleiste wählst du dein eigenes PDF.', 'blitz-donner-pdf' )
+							)
+							: null,
 						el( SelectControl, {
 							__next40pxDefaultSize: true,
 							__nextHasNoMarginBottom: true,
+							disabled: istDemo,
+							help: istDemo ? __( 'Für das Beispiel-PDF fix «Einzelseiten».', 'blitz-donner-pdf' ) : undefined,
 							label: __( 'Seitenlayout', 'blitz-donner-pdf' ),
 							value: pageLayout,
 							options: [

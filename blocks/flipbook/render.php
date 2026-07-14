@@ -7,14 +7,20 @@
  * @package bdpdf
  */
 
-if ( empty( $attributes['pdfUrl'] ) ) {
+// Beispiel-Modus: solange kein eigenes PDF gewählt ist, zeigt der Block das
+// gebündelte Demo-PDF – so lassen sich alle Einstellungen sofort ausprobieren.
+$bdpdf_is_demo = empty( $attributes['pdfUrl'] ) && ! empty( $attributes['useDemo'] );
+if ( empty( $attributes['pdfUrl'] ) && ! $bdpdf_is_demo ) {
 	return;
 }
+$bdpdf_demo = $bdpdf_is_demo ? bdpdf_demo_config() : null;
 
-$bdpdf_pdf_url = esc_url( $attributes['pdfUrl'] );
+$bdpdf_pdf_url = esc_url( $bdpdf_is_demo ? $bdpdf_demo['pdfUrl'] : $attributes['pdfUrl'] );
 $bdpdf_label   = ! empty( $attributes['pdfTitle'] )
 	? $attributes['pdfTitle']
-	: __( 'PDF-Dokument, blätterbar', 'blitz-donner-pdf' );
+	: ( $bdpdf_is_demo
+		? __( 'Beispiel-PDF, blätterbar', 'blitz-donner-pdf' )
+		: __( 'PDF-Dokument, blätterbar', 'blitz-donner-pdf' ) );
 
 // Vorgerenderte Seitenbilder (vom Editor nach der PDF-Auswahl erzeugt).
 $bdpdf_pages_json  = '';
@@ -23,7 +29,11 @@ $bdpdf_page_h      = 0;
 $bdpdf_layout      = 'single';
 $bdpdf_cover_singl = 0;
 $bdpdf_tail_singl  = 0;
-if ( ! empty( $attributes['pdfId'] ) ) {
+if ( $bdpdf_is_demo ) {
+	$bdpdf_pages_json = wp_json_encode( $bdpdf_demo['pages'] );
+	$bdpdf_page_w     = (int) $bdpdf_demo['width'];
+	$bdpdf_page_h     = (int) $bdpdf_demo['height'];
+} elseif ( ! empty( $attributes['pdfId'] ) ) {
 	$bdpdf_att_id = absint( $attributes['pdfId'] );
 	$bdpdf_meta   = get_post_meta( $bdpdf_att_id, '_bdpdf_pages', true );
 	if ( ! empty( $bdpdf_meta['count'] ) ) {
