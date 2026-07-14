@@ -50,7 +50,9 @@
 	align-items: center;
 	justify-content: center;
 	gap: 1rem;
-	margin-top: 0.75rem;
+	/* Abstand Buch → Navigation: einstellbar über «Block-Abstand» (blockGap).
+	   Kette: Inline-Wert des Blocks → globale Stile → Standard. */
+	margin-top: var(--bdpdf-gap, var(--wp--style--block-gap, 0.75rem));
 }
 
 .wp-block-bdpdf-flipbook .bdpdf-nav .wp-block-button {

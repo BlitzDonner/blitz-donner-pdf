@@ -147,9 +147,18 @@
 	registerBlockType( 'bdpdf/flipbook', {
 		edit: function ( props ) {
 			const { attributes, setAttributes } = props;
+			// «Block-Abstand» (blockGap) als Variable durchreichen – der Kern
+			// serialisiert ihn ohne Layout-Support nicht selbst.
+			let bdpdfGap = attributes.style && attributes.style.spacing && 'string' === typeof attributes.style.spacing.blockGap
+				? attributes.style.spacing.blockGap
+				: '';
+			if ( bdpdfGap && 0 === bdpdfGap.indexOf( 'var:' ) ) {
+				bdpdfGap = 'var(--wp--' + bdpdfGap.replace( 'var:', '' ).split( '|' ).join( '--' ) + ')';
+			}
 			const blockProps = useBlockProps( {
 				className: 'bdpdf-flipbook bdpdf-editor',
 				'data-bdpdf-appearance': attributes.appearanceMode || 'theme',
+				style: bdpdfGap ? { '--bdpdf-gap': bdpdfGap } : undefined,
 			} );
 
 			const [ status, setStatus ]       = useState( 'leer' ); // leer | prueft | rendert | bereit | fehler

@@ -64,10 +64,21 @@ if ( ! in_array( $bdpdf_appearance, array( 'theme', 'auto', 'light', 'dark' ), t
 	$bdpdf_appearance = 'theme';
 }
 
+// «Block-Abstand» (blockGap) aus dem Stil-Tab: Kern serialisiert ihn bei
+// Blöcken ohne Layout-Support nicht selbst, darum hier als eigene Variable.
+$bdpdf_gap = isset( $attributes['style']['spacing']['blockGap'] ) && is_string( $attributes['style']['spacing']['blockGap'] )
+	? $attributes['style']['spacing']['blockGap']
+	: '';
+if ( '' !== $bdpdf_gap && 0 === strpos( $bdpdf_gap, 'var:' ) ) {
+	// Preset-Notation var:preset|spacing|50 → var(--wp--preset--spacing--50).
+	$bdpdf_gap = 'var(--wp--' . str_replace( array( 'var:', '|' ), array( '', '--' ), $bdpdf_gap ) . ')';
+}
+
 $bdpdf_wrapper = get_block_wrapper_attributes(
 	array(
 		'class'                 => 'bdpdf-flipbook',
 		'data-bdpdf-appearance' => $bdpdf_appearance,
+		'style'                 => '' !== $bdpdf_gap ? '--bdpdf-gap:' . $bdpdf_gap . ';' : '',
 	)
 );
 ?>
