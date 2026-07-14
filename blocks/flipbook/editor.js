@@ -149,7 +149,7 @@
 			const { attributes, setAttributes } = props;
 			const blockProps = useBlockProps( {
 				className: 'bdpdf-flipbook bdpdf-editor',
-				'data-bdpdf-appearance': attributes.appearanceMode || 'auto',
+				'data-bdpdf-appearance': attributes.appearanceMode || 'theme',
 			} );
 
 			const [ status, setStatus ]       = useState( 'leer' ); // leer | prueft | rendert | bereit | fehler
@@ -434,9 +434,9 @@
 							__next40pxDefaultSize: true,
 							__nextHasNoMarginBottom: true,
 							label: __( 'Farbmodus', 'blitz-donner-pdf' ),
-							value: attributes.appearanceMode || 'auto',
+							value: attributes.appearanceMode || 'theme',
 							help:
-								'theme' === ( attributes.appearanceMode || 'auto' )
+								'theme' === ( attributes.appearanceMode || 'theme' )
 									? __( 'Farben, Buttons und Typografie kommen vollständig aus dem Theme (theme.json). Das Plugin fügt kein eigenes CSS hinzu.', 'blitz-donner-pdf' )
 									: undefined,
 							options: [
@@ -446,7 +446,7 @@
 								{ label: __( 'Dunkel', 'blitz-donner-pdf' ), value: 'dark' },
 							],
 							onChange: function ( value ) {
-								setAttributes( { appearanceMode: value || 'auto' } );
+								setAttributes( { appearanceMode: value || 'theme' } );
 							},
 						} )
 					)

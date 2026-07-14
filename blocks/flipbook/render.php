@@ -59,9 +59,9 @@ $bdpdf_show_cover = 'spread' === $bdpdf_layout
 	: ( empty( $attributes['showCover'] ) ? '0' : '1' );
 
 // Darstellungsmodus wie bei Blitz & Donner Forms: theme | auto | light | dark.
-$bdpdf_appearance = isset( $attributes['appearanceMode'] ) ? sanitize_key( (string) $attributes['appearanceMode'] ) : 'auto';
+$bdpdf_appearance = isset( $attributes['appearanceMode'] ) ? sanitize_key( (string) $attributes['appearanceMode'] ) : 'theme';
 if ( ! in_array( $bdpdf_appearance, array( 'theme', 'auto', 'light', 'dark' ), true ) ) {
-	$bdpdf_appearance = 'auto';
+	$bdpdf_appearance = 'theme';
 }
 
 $bdpdf_wrapper = get_block_wrapper_attributes(
