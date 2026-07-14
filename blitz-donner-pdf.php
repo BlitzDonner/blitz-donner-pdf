@@ -3,7 +3,7 @@
  * Plugin Name:       Blitz & Donner PDF
  * Plugin URI:        https://plugins.blitzdonner.ch
  * Description:       Gutenberg-Block «BD PDF», der ein PDF aus der Mediathek als blätterbares Buch anzeigt. Seiten werden nach dem Hochladen vorgerendert; PDF.js und StPageFlip sind lokal gebündelt, kein CDN.
- * Version:           0.5.0
+ * Version:           0.5.1
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Author:            Blitz & Donner
@@ -18,7 +18,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'BDPDF_VERSION', '0.5.0' );
+define( 'BDPDF_VERSION', '0.5.1' );
 define( 'BDPDF_TARGET_WIDTH', 2000 ); // Pixelbreite der vorgerenderten Seitenbilder.
 
 require_once __DIR__ . '/includes/rest-pages.php';
@@ -66,6 +66,38 @@ add_action(
 			'window.bdpdfEditor = ' . wp_json_encode( $settings ) . ';',
 			'before'
 		);
+	}
+);
+
+// Nachlader für dynamisch eingefügten Inhalt: WordPress reiht Block-Assets
+// nur bei serverseitigem Rendern ein. Lädt ein Theme den Beitrag per AJAX
+// nach (z.B. Popover auf einer Übersichtsseite), fehlen sie. Der schlanke
+// Loader beobachtet den DOM und holt die Assets erst, wenn ein Block auftaucht.
+add_action(
+	'wp_enqueue_scripts',
+	function () {
+		$loader_config = array(
+			'viewCss'  => plugins_url( 'blocks/flipbook/view.css', __FILE__ ) . '?ver=' . BDPDF_VERSION,
+			'pageFlip' => plugins_url( 'blocks/flipbook/page-flip.browser.js', __FILE__ ) . '?ver=' . BDPDF_VERSION,
+			'core'     => plugins_url( 'blocks/flipbook/flipbook-core.js', __FILE__ ) . '?ver=' . BDPDF_VERSION,
+			'view'     => plugins_url( 'blocks/flipbook/view.mjs', __FILE__ ) . '?ver=' . BDPDF_VERSION,
+		);
+		wp_register_script(
+			'bdpdf-dynamic-loader',
+			plugins_url( 'blocks/flipbook/dynamic-loader.js', __FILE__ ),
+			array(),
+			BDPDF_VERSION,
+			array(
+				'in_footer' => true,
+				'strategy'  => 'defer',
+			)
+		);
+		wp_add_inline_script(
+			'bdpdf-dynamic-loader',
+			'window.bdpdfLoaderConfig = ' . wp_json_encode( $loader_config ) . ';',
+			'before'
+		);
+		wp_enqueue_script( 'bdpdf-dynamic-loader' );
 	}
 );
 

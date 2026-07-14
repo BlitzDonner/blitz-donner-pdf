@@ -4,7 +4,7 @@ Tags: pdf, flipbook, block, media
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.5.0
+Stable tag: 0.5.1
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -42,6 +42,9 @@ Nein. Alle Bibliotheken liegen im Plugin, das PDF kommt aus der eigenen Mediathe
 Alle Seiten werden im Browser vorgerendert. Bis etwa 60 Seiten bleibt die Ladezeit angenehm; darüber steigt sie spürbar.
 
 == Changelog ==
+
+= 0.5.1 =
+* Fix: Flipbook erscheint jetzt auch in dynamisch nachgeladenem Inhalt (z.B. Theme-Popover, das den Beitrag per AJAX lädt). Ein schlanker Nachlader holt CSS, StPageFlip, Core und View-Modul, sobald ein Block im DOM auftaucht; das View-Modul initialisiert nachträglich eingefügte Blöcke selbst.
 
 = 0.5.0 =
 * Neu: Einstellung «Seitenlayout» (Einzelseiten oder Doppelseiten). Im Doppelseiten-Modus wird jede breite PDF-Seite beim Vorab-Rendern am Bund geteilt – das Buch klappt exakt am Bund und zeigt die Doppelseiten wie gestaltet. Schmale erste/letzte Seiten werden automatisch als einzelner Umschlag erkannt.

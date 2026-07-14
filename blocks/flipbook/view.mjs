@@ -160,7 +160,14 @@ async function legacyRender( root ) {
 	}
 }
 
-document.querySelectorAll( '.wp-block-bdpdf-flipbook[data-pdf-url]' ).forEach( ( root ) => {
+const BDPDF_SELECTOR = '.wp-block-bdpdf-flipbook[data-pdf-url]';
+
+/** Initialisiert einen Block-Wrapper genau einmal. */
+function initFlipbookRoot( root ) {
+	if ( root.dataset.bdpdfInit ) {
+		return;
+	}
+	root.dataset.bdpdfInit = '1';
 	const pages = root.dataset.pages ? JSON.parse( root.dataset.pages ) : null;
 	if ( pages && pages.length ) {
 		// Regelfall: vorgerendert → sofort verfügbar.
@@ -173,4 +180,28 @@ document.querySelectorAll( '.wp-block-bdpdf-flipbook[data-pdf-url]' ).forEach( (
 	} else {
 		legacyRender( root );
 	}
-} );
+}
+
+/** Findet Blöcke im übergebenen Teilbaum (inklusive Wurzel). */
+function scanForFlipbooks( container ) {
+	if ( container.matches && container.matches( BDPDF_SELECTOR ) ) {
+		initFlipbookRoot( container );
+	}
+	if ( container.querySelectorAll ) {
+		container.querySelectorAll( BDPDF_SELECTOR ).forEach( initFlipbookRoot );
+	}
+}
+
+scanForFlipbooks( document );
+
+// Dynamisch eingefügte Blöcke initialisieren – etwa wenn ein Theme
+// Beitragsinhalte per AJAX in ein Popover lädt.
+new MutationObserver( ( mutations ) => {
+	for ( const mutation of mutations ) {
+		mutation.addedNodes.forEach( ( node ) => {
+			if ( 1 === node.nodeType ) {
+				scanForFlipbooks( node );
+			}
+		} );
+	}
+} ).observe( document.body, { childList: true, subtree: true } );
