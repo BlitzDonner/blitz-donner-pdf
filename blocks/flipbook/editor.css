@@ -5,20 +5,31 @@
 	margin-bottom: 0.5rem;
 }
 
-/* Statische Doppelseite: gleiche Klassen und Skins wie das Frontend-Buch,
-   aber als simples Flex-Layout ohne StPageFlip. */
+/* Statische Doppelseiten-Vorschau, pixelgleich zur StPageFlip-Geometrie im
+   Frontend: Das Buch ist immer zwei Seiten breit (Kappung bei 2× der
+   Seitenbild-Breite, wie maxWidth in flipbook-core.js), jede Seite hält das
+   exakte Seitenverhältnis. Einzelne Umschläge liegen wie im Frontend auf der
+   rechten (vorn) bzw. linken (hinten) Buchhälfte; die andere Hälfte bleibt
+   als unsichtbarer Platzhalter stehen. */
 .bdpdf-editor .bdpdf-book-static {
 	display: flex;
 	justify-content: center;
 	align-items: stretch;
+	margin-left: auto;
+	margin-right: auto;
+	width: 100%;
+	max-width: calc(var(--bdpdf-pw, 1000) * 2px);
 }
 
-.bdpdf-editor .bdpdf-book-static .bdpdf-page {
-	flex: 0 1 auto;
-	max-width: 50%;
+.bdpdf-editor .bdpdf-book-static .bdpdf-page,
+.bdpdf-editor .bdpdf-book-static .bdpdf-page-blank {
+	flex: 0 0 50%;
+	width: 50%;
+	aspect-ratio: var(--bdpdf-pw, 1000) / var(--bdpdf-ph, 1414);
 }
 
 .bdpdf-editor .bdpdf-book-static .bdpdf-page img {
 	width: 100%;
-	height: auto;
+	height: 100%;
+	object-fit: fill;
 }

@@ -4,7 +4,7 @@ Tags: pdf, flipbook, block, media
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.6.2
+Stable tag: 0.7.0
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -42,6 +42,10 @@ Nein. Alle Bibliotheken liegen im Plugin, das PDF kommt aus der eigenen Mediathe
 Alle Seiten werden im Browser vorgerendert. Bis etwa 60 Seiten bleibt die Ladezeit angenehm; darüber steigt sie spürbar.
 
 == Changelog ==
+
+= 0.7.0 =
+* Editor-Vorschau pixelgleich zum Frontend: gleiche Buchbreite und Seitenverhältnisse wie StPageFlip, einzelne Umschläge liegen wie im Buch auf der rechten (vorn) bzw. linken (hinten) Buchhälfte.
+* Schatten liegt neu auf dem gerenderten Buch statt auf dem Block-Rahmen – im Frontend, im Beitrags-Editor und im Website-Editor identisch.
 
 = 0.6.2 =
 * Einstellbarer Abstand zwischen Buch und Navigation: neuer Regler «Block-Abstand» im Stil-Tab (Abmessungen). Ohne eigene Einstellung gilt der Block-Abstand des Themes, sonst 0.75rem.

@@ -35,6 +35,9 @@
 
 .wp-block-bdpdf-flipbook .bdpdf-page {
 	overflow: hidden;
+	/* Schatten-Support des Blocks liegt auf dem Buch, nicht auf dem Wrapper:
+	   render.php/editor.js leiten box-shadow in --bdpdf-book-shadow um. */
+	box-shadow: var(--bdpdf-book-shadow, none);
 }
 
 .wp-block-bdpdf-flipbook .bdpdf-page img {
@@ -178,7 +181,7 @@
 .wp-block-bdpdf-flipbook[data-bdpdf-appearance="dark"] .bdpdf-page,
 .wp-block-bdpdf-flipbook[data-bdpdf-appearance="auto"] .bdpdf-page {
 	background: #ffffff;
-	box-shadow: 0 0 18px rgba(0, 0, 0, 0.25);
+	box-shadow: var(--bdpdf-book-shadow, 0 0 18px rgba(0, 0, 0, 0.25));
 }
 
 .wp-block-bdpdf-flipbook[data-bdpdf-appearance="light"] .bdpdf-progress,

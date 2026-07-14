@@ -81,6 +81,10 @@ $bdpdf_wrapper = get_block_wrapper_attributes(
 		'style'                 => '' !== $bdpdf_gap ? '--bdpdf-gap:' . $bdpdf_gap . ';' : '',
 	)
 );
+// Schatten gehört aufs Buch, nicht auf den Wrapper: den vom Schatten-Support
+// erzeugten box-shadow in die Variable umschreiben, die view.css auf
+// .bdpdf-page anwendet (gleiche Umleitung wie im Editor).
+$bdpdf_wrapper = str_replace( array( 'box-shadow:', 'box-shadow :' ), '--bdpdf-book-shadow:', $bdpdf_wrapper );
 ?>
 <div <?php echo $bdpdf_wrapper; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- von WordPress escaped. ?>
 	data-pdf-url="<?php echo $bdpdf_pdf_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- oben mit esc_url() escaped. ?>"

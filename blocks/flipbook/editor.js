@@ -160,11 +160,20 @@
 				'data-bdpdf-appearance': attributes.appearanceMode || 'theme',
 				style: bdpdfGap ? { '--bdpdf-gap': bdpdfGap } : undefined,
 			} );
+			// Schatten gehört aufs Buch, nicht auf den Wrapper: den vom
+			// Schatten-Support erzeugten box-shadow in die Variable umleiten,
+			// die view.css auf .bdpdf-page anwendet.
+			if ( blockProps.style && blockProps.style.boxShadow ) {
+				blockProps.style = Object.assign( {}, blockProps.style, {
+					'--bdpdf-book-shadow': blockProps.style.boxShadow,
+				} );
+				delete blockProps.style.boxShadow;
+			}
 
 			const [ status, setStatus ]       = useState( 'leer' ); // leer | prueft | rendert | bereit | fehler
 			const [ progress, setProgress ]   = useState( { done: 0, total: 0 } );
 			const [ pages, setPages ]         = useState( null );
-			const [ pagesMeta, setPagesMeta ] = useState( { coverSingle: false } );
+			const [ pagesMeta, setPagesMeta ] = useState( { coverSingle: false, w: 0, h: 0 } );
 			const [ spreadIdx, setSpreadIdx ] = useState( 0 );
 			const pageLayout = attributes.pageLayout || 'single';
 			const istDemo    = !! attributes.useDemo && ! attributes.pdfId;
@@ -193,7 +202,7 @@
 				if ( attributes.useDemo && ! attributes.pdfId ) {
 					const demo = CFG().demo || {};
 					setPages( demo.pages || [] );
-					setPagesMeta( { coverSingle: false } );
+					setPagesMeta( { coverSingle: false, w: demo.width || 0, h: demo.height || 0 } );
 					setSpreadIdx( 0 );
 					setStatus( 'bereit' );
 					return;
@@ -205,7 +214,7 @@
 				let cancelled = false;
 				const uebernehmen = ( info ) => {
 					setPages( info.urls );
-					setPagesMeta( { coverSingle: !! info.cover_single } );
+					setPagesMeta( { coverSingle: !! info.cover_single, w: info.width || 0, h: info.height || 0 } );
 					setSpreadIdx( 0 );
 					setStatus( 'bereit' );
 				};
@@ -302,17 +311,33 @@
 				const info    = 1 === spread.length
 					? `Seite ${ spread[ 0 ] + 1 } / ${ pages.length }`
 					: `Seiten ${ spread[ 0 ] + 1 }–${ letzte } / ${ pages.length }`;
+				// Einzelseiten liegen wie im Frontend auf der Buchfläche:
+				// Umschlag vorn rechts, Rückseite hinten links.
+				const kinder = spread.map( ( p ) =>
+					el(
+						'div',
+						{ className: 'bdpdf-page', key: 'p' + p },
+						el( 'img', { src: pages[ p ], alt: '' } )
+					)
+				);
+				if ( 1 === spread.length && alle.length > 1 ) {
+					if ( 0 === idx ) {
+						kinder.unshift( el( 'div', { className: 'bdpdf-page-blank', key: 'blank' } ) );
+					} else if ( idx === alle.length - 1 ) {
+						kinder.push( el( 'div', { className: 'bdpdf-page-blank', key: 'blank' } ) );
+					}
+				}
 				inhalt = [
 					el(
 						'div',
-						{ className: 'bdpdf-book bdpdf-book-static', key: 'book' },
-						spread.map( ( p ) =>
-							el(
-								'div',
-								{ className: 'bdpdf-page', key: 'p' + p },
-								el( 'img', { src: pages[ p ], alt: '' } )
-							)
-						)
+						{
+							className: 'bdpdf-book bdpdf-book-static',
+							key: 'book',
+							style: pagesMeta.w > 0
+								? { '--bdpdf-pw': pagesMeta.w, '--bdpdf-ph': pagesMeta.h }
+								: undefined,
+						},
+						kinder
 					),
 					el(
 						'div',
