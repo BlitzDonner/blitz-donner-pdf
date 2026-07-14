@@ -58,4 +58,15 @@ HTTP=$(curl -sS -o "$BUILD_DIR/antwort.json" -w '%{http_code}' \
 echo "HTTP $HTTP"
 cat "$BUILD_DIR/antwort.json"; echo
 [ "$HTTP" = "201" ] || [ "$HTTP" = "200" ] || { echo "FEHLER: Publish fehlgeschlagen." >&2; exit 1; }
+
+# Git gehört zu jedem Release: Arbeitsstand muss committet sein, danach Push.
+cd "$REPO_DIR"
+if [ -n "$(git status --porcelain)" ]; then
+	echo "WARNUNG: Unversionierte Änderungen im Repo – bitte committen!" >&2
+fi
+if git remote get-url origin >/dev/null 2>&1; then
+	git push origin HEAD && echo "— Git: origin ist auf dem Release-Stand."
+else
+	echo "WARNUNG: Kein Git-Remote konfiguriert." >&2
+fi
 echo "— Fertig: $SLUG $VERSION publiziert."
