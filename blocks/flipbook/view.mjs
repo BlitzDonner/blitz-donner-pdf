@@ -24,6 +24,36 @@ function loadPdfjs() {
 }
 
 /**
+ * Zuordnung Buchseite → PDF-Seite im Doppelseiten-Modus.
+ *
+ * Im Layout 'spread' ist jede breite PDF-Seite in zwei Buchseiten geteilt;
+ * einzelne Umschlagseiten (vorn/hinten) bleiben ganz.
+ *
+ * @param {number}  i           Buchseiten-Index (0-basiert).
+ * @param {number}  count       Anzahl Buchseiten.
+ * @param {string}  layout      'single' | 'spread'.
+ * @param {boolean} coverSingle Erste PDF-Seite ist einzelner Umschlag.
+ * @param {boolean} tailSingle  Letzte PDF-Seite ist einzelner Umschlag.
+ * @return {{page: number, half: (number|null)}} PDF-Seite (1-basiert) und
+ *         Hälfte (0 = links, 1 = rechts, null = ganze Seite).
+ */
+function bookToPdf( i, count, layout, coverSingle, tailSingle ) {
+	if ( 'spread' !== layout ) {
+		return { page: i + 1, half: null };
+	}
+	const cover = coverSingle ? 1 : 0;
+	if ( coverSingle && 0 === i ) {
+		return { page: 1, half: null };
+	}
+	if ( tailSingle && i === count - 1 ) {
+		const spreads = ( count - cover - 1 ) / 2;
+		return { page: cover + spreads + 1, half: null };
+	}
+	const idx = i - cover;
+	return { page: cover + Math.floor( idx / 2 ) + 1, half: idx % 2 };
+}
+
+/**
  * Nachrendern sichtbarer Seiten, wenn der Viewport grösser ist als die
  * gespeicherte Bildbreite. Rendert lazy, cached pro Seite.
  */
@@ -46,7 +76,10 @@ function setupHiRes( root, inst, count, storedWidth ) {
 		if ( ! pdfPromise ) {
 			pdfPromise = loadPdfjs().then( ( m ) => m.getDocument( root.dataset.pdfUrl ).promise );
 		}
-		const pdf = await pdfPromise;
+		const pdf         = await pdfPromise;
+		const layout      = root.dataset.layout || 'single';
+		const coverSingle = '1' === root.dataset.coverSingle;
+		const tailSingle  = '1' === root.dataset.tailSingle;
 		const idx = inst.pageFlip.getCurrentPageIndex();
 		// Sichtbare Doppelseite plus je eine Seite Vorgriff.
 		const wanted = [ idx, idx + 1, idx - 1, idx + 2 ].filter( ( i ) => i >= 0 && i < count );
@@ -55,14 +88,24 @@ function setupHiRes( root, inst, count, storedWidth ) {
 				inst.setPageSrc( i, cache.get( i ) );
 				continue;
 			}
-			const page     = await pdf.getPage( i + 1 );
+			const ziel     = bookToPdf( i, count, layout, coverSingle, tailSingle );
+			const page     = await pdf.getPage( ziel.page );
 			const base     = page.getViewport( { scale: 1 } );
-			const scale    = Math.min( 4, needed / base.width );
+			const isHalf   = null !== ziel.half;
+			const baseW    = isHalf ? base.width / 2 : base.width;
+			const scale    = Math.min( 4, needed / baseW );
 			const viewport = page.getViewport( { scale } );
+			const halfW    = Math.floor( viewport.width / 2 );
 			const canvas   = document.createElement( 'canvas' );
-			canvas.width   = viewport.width;
-			canvas.height  = viewport.height;
-			await page.render( { canvasContext: canvas.getContext( '2d' ), viewport, intent: 'print' } ).promise;
+			canvas.width   = isHalf ? ( 0 === ziel.half ? halfW : Math.round( viewport.width ) - halfW ) : Math.round( viewport.width );
+			canvas.height  = Math.round( viewport.height );
+			await page.render( {
+				canvasContext: canvas.getContext( '2d' ),
+				viewport,
+				intent: 'print',
+				// Rechte Hälfte: Zeichnung um die halbe Breite nach links schieben.
+				transform: isHalf && 1 === ziel.half ? [ 1, 0, 0, 1, -halfW, 0 ] : undefined,
+			} ).promise;
 			const src = canvas.toDataURL( 'image/jpeg', 0.9 );
 			cache.set( i, src );
 			inst.setPageSrc( i, src );

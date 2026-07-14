@@ -2,12 +2,17 @@
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
 	"name": "bdpdf/flipbook",
-	"version": "0.4.3",
+	"version": "0.5.0",
 	"title": "BD PDF",
 	"category": "media",
 	"icon": "book",
 	"description": "Zeigt ein PDF aus der Mediathek als blätterbares Buch mit Umblätter-Animation.",
-	"keywords": [ "pdf", "flipbook", "blättern", "buch" ],
+	"keywords": [
+		"pdf",
+		"flipbook",
+		"blättern",
+		"buch"
+	],
 	"textdomain": "blitz-donner-pdf",
 	"attributes": {
 		"pdfId": {
@@ -28,10 +33,17 @@
 		"appearanceMode": {
 			"type": "string",
 			"default": "auto"
+		},
+		"pageLayout": {
+			"type": "string",
+			"default": "single"
 		}
 	},
 	"supports": {
-		"align": [ "wide", "full" ],
+		"align": [
+			"wide",
+			"full"
+		],
 		"html": false,
 		"spacing": {
 			"margin": true,
@@ -57,7 +69,10 @@
 	"render": "file:./render.php",
 	"editorScript": "file:./editor.js",
 	"editorStyle": "file:./editor.css",
-	"script": [ "file:./page-flip.browser.js", "file:./flipbook-core.js" ],
+	"script": [
+		"file:./page-flip.browser.js",
+		"file:./flipbook-core.js"
+	],
 	"style": "file:./view.css",
 	"viewScriptModule": "file:./view.mjs"
 }

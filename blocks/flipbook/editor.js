@@ -37,40 +37,89 @@
 		return pdfjsPromise;
 	}
 
-	/** Rendert das PDF seitenweise und lädt jede Seite zur REST-Route hoch. */
-	async function renderAndUpload( pdfId, pdfUrl, onProgress ) {
+	/**
+	 * Rendert das PDF und lädt jede BUCHSEITE zur REST-Route hoch.
+	 *
+	 * layout 'single': eine Buchseite pro PDF-Seite (Standard).
+	 * layout 'spread': Doppelseiten-PDF – jede breite PDF-Seite wird am Bund
+	 * in zwei Buchseiten geteilt. Schmale erste/letzte Seiten (Umschlag,
+	 * Breite < 75 % der Maximalbreite) bleiben ganz; so klappt das Buch exakt
+	 * am Bund und zeigt die Doppelseiten wie gestaltet.
+	 */
+	async function renderAndUpload( pdfId, pdfUrl, layout, onProgress ) {
 		const pdfjsLib = await loadPdfjs();
 		const pdf      = await pdfjsLib.getDocument( pdfUrl ).promise;
-		const total    = pdf.numPages;
-		let pageW      = 0;
-		let pageH      = 0;
+		const spread   = 'spread' === layout;
+		const target   = CFG().targetWidth || 2000;
 
-		for ( let i = 1; i <= total; i++ ) {
-			const page     = await pdf.getPage( i );
-			const base     = page.getViewport( { scale: 1 } );
-			const scale    = ( CFG().targetWidth || 2000 ) / base.width;
+		// Erster Pass: nur Seitenbreiten lesen (billig, ohne Rendern).
+		const widths = [];
+		for ( let i = 1; i <= pdf.numPages; i++ ) {
+			widths.push( ( await pdf.getPage( i ) ).getViewport( { scale: 1 } ).width );
+		}
+		const maxW        = Math.max.apply( null, widths );
+		const singles     = widths.map( ( w ) => spread && w < 0.75 * maxW );
+		const coverSingle = spread && singles[ 0 ];
+		const tailSingle  = spread && pdf.numPages > 1 && singles[ pdf.numPages - 1 ];
+
+		let total = 0;
+		for ( let i = 0; i < pdf.numPages; i++ ) {
+			total += spread && ! singles[ i ] ? 2 : 1;
+		}
+
+		let bookPage = 0;
+		let pageW    = 0;
+		let pageH    = 0;
+		for ( let i = 1; i <= pdf.numPages; i++ ) {
+			const page = await pdf.getPage( i );
+			const base = page.getViewport( { scale: 1 } );
+			// Doppelseiten rendern auf 2×target, damit jede Hälfte target breit
+			// ist; einzelne Umschlagseiten bekommen dieselbe Pixeldichte.
+			const scale    = spread ? ( 2 * target ) / maxW : target / base.width;
 			const viewport = page.getViewport( { scale } );
-			if ( 1 === i ) {
-				pageW = Math.round( viewport.width );
-				pageH = Math.round( viewport.height );
-			}
-			const canvas  = document.createElement( 'canvas' );
-			canvas.width  = viewport.width;
-			canvas.height = viewport.height;
+			const canvas   = document.createElement( 'canvas' );
+			canvas.width   = Math.round( viewport.width );
+			canvas.height  = Math.round( viewport.height );
 			await page.render( { canvasContext: canvas.getContext( '2d' ), viewport, intent: 'print' } ).promise;
 
-			await apiFetch( {
-				path: '/bdpdf/v1/pages/' + pdfId,
-				method: 'POST',
-				data: {
-					page: i,
-					total: total,
-					width: pageW,
-					height: pageH,
-					image: canvas.toDataURL( 'image/jpeg', 0.9 ),
-				},
-			} );
-			onProgress( i, total );
+			const parts = [];
+			if ( spread && ! singles[ i - 1 ] ) {
+				const halfW = Math.floor( canvas.width / 2 );
+				const left  = document.createElement( 'canvas' );
+				left.width  = halfW;
+				left.height = canvas.height;
+				left.getContext( '2d' ).drawImage( canvas, 0, 0 );
+				const right  = document.createElement( 'canvas' );
+				right.width  = canvas.width - halfW;
+				right.height = canvas.height;
+				right.getContext( '2d' ).drawImage( canvas, -halfW, 0 );
+				parts.push( left, right );
+			} else {
+				parts.push( canvas );
+			}
+
+			for ( const part of parts ) {
+				bookPage++;
+				if ( ! pageW ) {
+					pageW = part.width;
+					pageH = part.height;
+				}
+				await apiFetch( {
+					path: '/bdpdf/v1/pages/' + pdfId,
+					method: 'POST',
+					data: {
+						page: bookPage,
+						total: total,
+						width: pageW,
+						height: pageH,
+						layout: spread ? 'spread' : 'single',
+						cover_single: coverSingle ? 1 : 0,
+						tail_single: tailSingle ? 1 : 0,
+						image: part.toDataURL( 'image/jpeg', 0.9 ),
+					},
+				} );
+				onProgress( bookPage, total );
+			}
 		}
 	}
 
@@ -106,7 +155,9 @@
 			const [ status, setStatus ]       = useState( 'leer' ); // leer | prueft | rendert | bereit | fehler
 			const [ progress, setProgress ]   = useState( { done: 0, total: 0 } );
 			const [ pages, setPages ]         = useState( null );
+			const [ pagesMeta, setPagesMeta ] = useState( { coverSingle: false } );
 			const [ spreadIdx, setSpreadIdx ] = useState( 0 );
+			const pageLayout = attributes.pageLayout || 'single';
 
 			const onSelect = function ( media ) {
 				setPages( null );
@@ -119,13 +170,22 @@
 				} );
 			};
 
-			// Nach Auswahl: Status prüfen, bei Bedarf rendern und hochladen.
+			// Nach Auswahl oder Layout-Wechsel: Status prüfen, bei Bedarf
+			// rendern und hochladen. Passt das gespeicherte Layout nicht zum
+			// eingestellten, wird neu gerendert; überzählige Alt-Dateien
+			// entfernt der Server erst nach erfolgreichem Abschluss.
 			useEffect( () => {
 				if ( ! attributes.pdfId ) {
 					setStatus( 'leer' );
 					return;
 				}
 				let cancelled = false;
+				const uebernehmen = ( info ) => {
+					setPages( info.urls );
+					setPagesMeta( { coverSingle: !! info.cover_single } );
+					setSpreadIdx( 0 );
+					setStatus( 'bereit' );
+				};
 				( async () => {
 					try {
 						setStatus( 'prueft' );
@@ -133,21 +193,19 @@
 						if ( cancelled ) {
 							return;
 						}
-						if ( info.count > 0 ) {
-							setPages( info.urls );
-							setStatus( 'bereit' );
+						if ( info.count > 0 && ( info.layout || 'single' ) === pageLayout ) {
+							uebernehmen( info );
 							return;
 						}
 						setStatus( 'rendert' );
-						await renderAndUpload( attributes.pdfId, attributes.pdfUrl, ( done, total ) => {
+						await renderAndUpload( attributes.pdfId, attributes.pdfUrl, pageLayout, ( done, total ) => {
 							if ( ! cancelled ) {
 								setProgress( { done, total } );
 							}
 						} );
 						const done = await apiFetch( { path: '/bdpdf/v1/pages/' + attributes.pdfId } );
 						if ( ! cancelled ) {
-							setPages( done.urls );
-							setStatus( 'bereit' );
+							uebernehmen( done );
 						}
 					} catch ( err ) {
 						// eslint-disable-next-line no-console
@@ -160,7 +218,7 @@
 				return () => {
 					cancelled = true;
 				};
-			}, [ attributes.pdfId ] );
+			}, [ attributes.pdfId, pageLayout ] );
 
 			// Buchdeckel-Wechsel: Ansicht auf den Anfang zurücksetzen.
 			useEffect( () => {
@@ -198,9 +256,12 @@
 			}
 
 			// Vorschau-Inhalt: Doppelseite (React, ohne StPageFlip).
+			// Im Doppelseiten-Modus bestimmt das PDF selbst, ob der Umschlag
+			// einzeln steht (automatisch erkannt) – nicht der Schalter.
+			const effektiverDeckel = 'spread' === pageLayout ? pagesMeta.coverSingle : !! attributes.showCover;
 			let inhalt;
 			if ( 'bereit' === status && pages ) {
-				const alle    = bdpdfSpreads( pages.length, !! attributes.showCover );
+				const alle    = bdpdfSpreads( pages.length, effektiverDeckel );
 				const idx     = Math.min( spreadIdx, alle.length - 1 );
 				const spread  = alle[ idx ];
 				const letzte  = spread[ spread.length - 1 ] + 1;
@@ -297,14 +358,34 @@
 					el(
 						PanelBody,
 						{ title: __( 'Flipbook-Einstellungen', 'blitz-donner-pdf' ) },
-						el( ToggleControl, {
-							label: __( 'Erste Seite als Buchdeckel', 'blitz-donner-pdf' ),
-							help: __( 'Zeigt die erste Seite einzeln, danach Doppelseiten.', 'blitz-donner-pdf' ),
-							checked: !! attributes.showCover,
+						el( SelectControl, {
+							__next40pxDefaultSize: true,
+							__nextHasNoMarginBottom: true,
+							label: __( 'Seitenlayout', 'blitz-donner-pdf' ),
+							value: pageLayout,
+							options: [
+								{ label: __( 'Einzelseiten (Standard)', 'blitz-donner-pdf' ), value: 'single' },
+								{ label: __( 'Doppelseiten – am Bund teilen', 'blitz-donner-pdf' ), value: 'spread' },
+							],
+							help:
+								'spread' === pageLayout
+									? __( 'Für PDFs, bei denen eine PDF-Seite eine ganze Druck-Doppelseite enthält. Jede Seite wird in der Mitte geteilt, das Buch klappt am Bund. Schmale erste/letzte Seiten werden automatisch als einzelner Umschlag erkannt.', 'blitz-donner-pdf' )
+									: __( 'Jede PDF-Seite ist eine Buchseite.', 'blitz-donner-pdf' ),
 							onChange: function ( value ) {
-								setAttributes( { showCover: value } );
+								setAttributes( { pageLayout: 'spread' === value ? 'spread' : 'single' } );
 							},
-						} )
+						} ),
+						'single' === pageLayout
+							? el( ToggleControl, {
+								__nextHasNoMarginBottom: true,
+								label: __( 'Erste Seite als Buchdeckel', 'blitz-donner-pdf' ),
+								help: __( 'Zeigt die erste Seite einzeln, danach Doppelseiten.', 'blitz-donner-pdf' ),
+								checked: !! attributes.showCover,
+								onChange: function ( value ) {
+									setAttributes( { showCover: value } );
+								},
+							} )
+							: null
 					)
 				),
 				// Farbmodus gehört in den Stil-Tab (Pinsel) – gleiche Logik
@@ -316,6 +397,8 @@
 						PanelBody,
 						{ title: __( 'Erscheinungsbild', 'blitz-donner-pdf' ), initialOpen: true },
 						el( SelectControl, {
+							__next40pxDefaultSize: true,
+							__nextHasNoMarginBottom: true,
 							label: __( 'Farbmodus', 'blitz-donner-pdf' ),
 							value: attributes.appearanceMode || 'auto',
 							help:

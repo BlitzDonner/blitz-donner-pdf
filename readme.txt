@@ -4,7 +4,7 @@ Tags: pdf, flipbook, block, media
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.4.3
+Stable tag: 0.5.0
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -42,6 +42,10 @@ Nein. Alle Bibliotheken liegen im Plugin, das PDF kommt aus der eigenen Mediathe
 Alle Seiten werden im Browser vorgerendert. Bis etwa 60 Seiten bleibt die Ladezeit angenehm; darüber steigt sie spürbar.
 
 == Changelog ==
+
+= 0.5.0 =
+* Neu: Einstellung «Seitenlayout» (Einzelseiten oder Doppelseiten). Im Doppelseiten-Modus wird jede breite PDF-Seite beim Vorab-Rendern am Bund geteilt – das Buch klappt exakt am Bund und zeigt die Doppelseiten wie gestaltet. Schmale erste/letzte Seiten werden automatisch als einzelner Umschlag erkannt.
+* Beim Neu-Rendern (z.B. Layout-Wechsel) bleibt die alte Fassung im Frontend verfügbar, bis der neue Lauf abgeschlossen ist; überzählige Alt-Dateien werden erst danach entfernt.
 
 = 0.4.3 =
 * Update-Client startet früher (plugins_loaded statt init): WordPress zeigt die Auto-Update-Schaltung in der Plugin-Liste jetzt zuverlässig an.

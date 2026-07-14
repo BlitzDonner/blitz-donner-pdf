@@ -32,6 +32,9 @@ Im Frontend: Blättern per Knopf, Pfeiltasten (bei fokussiertem Block) oder Zieh
 ## Auto-Updates
 Das Plugin ist auf dem Update-Server (plugins.blitzdonner.ch) als **freies Plugin** markiert: Installationen erhalten Auto-Updates ohne Lizenz-Token. Der eingebettete Client fragt tokenlos an, der Server entscheidet. Ed25519-Pflichtsignatur und SHA-256-Prüfung gelten unverändert; ein hinterlegtes Token (`BDPDF_LICENSE_TOKEN`) funktioniert weiterhin, ist aber nicht nötig. Achtung: Die Klasse `BD_Update_Client` wird von allen B&D-Plugins geteilt (class_exists, erste Kopie gewinnt) – Änderungen an der kanonischen Quelle (Repo bd-plugin-updater) müssen in alle Plugins mit eingebetteter Kopie ausgerollt werden. Release: `tools/release.sh "Changelog"`.
 
+## Seitenlayout (seit 0.5.0)
+Einstellung im Zahnrad-Tab: **Einzelseiten** (Standard, jede PDF-Seite = eine Buchseite) oder **Doppelseiten** (jede PDF-Seite enthält eine Druck-Doppelseite und wird beim Vorab-Rendern am Bund geteilt). Schmale erste/letzte Seiten (< 75 % der Maximalbreite) gelten automatisch als einzelner Umschlag; die Buchdeckel-Logik folgt im Doppelseiten-Modus dieser Erkennung statt dem Schalter. Das Hi-Res-Nachrendern im Frontend rechnet Buchseiten auf PDF-Seite und Hälfte zurück (bookToPdf in view.mjs).
+
 ## Anforderungen
 WordPress 6.5+ (wegen `viewScriptModule`), PHP 7.4+.
 ## Bekannte Grenzen

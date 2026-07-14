@@ -17,9 +17,12 @@ $bdpdf_label   = ! empty( $attributes['pdfTitle'] )
 	: __( 'PDF-Dokument, blätterbar', 'blitz-donner-pdf' );
 
 // Vorgerenderte Seitenbilder (vom Editor nach der PDF-Auswahl erzeugt).
-$bdpdf_pages_json = '';
-$bdpdf_page_w     = 0;
-$bdpdf_page_h     = 0;
+$bdpdf_pages_json  = '';
+$bdpdf_page_w      = 0;
+$bdpdf_page_h      = 0;
+$bdpdf_layout      = 'single';
+$bdpdf_cover_singl = 0;
+$bdpdf_tail_singl  = 0;
 if ( ! empty( $attributes['pdfId'] ) ) {
 	$bdpdf_att_id = absint( $attributes['pdfId'] );
 	$bdpdf_meta   = get_post_meta( $bdpdf_att_id, '_bdpdf_pages', true );
@@ -30,11 +33,20 @@ if ( ! empty( $attributes['pdfId'] ) ) {
 		for ( $bdpdf_i = 1; $bdpdf_i <= (int) $bdpdf_meta['count']; $bdpdf_i++ ) {
 			$bdpdf_urls[] = $bdpdf_base . '/page-' . $bdpdf_i . '.jpg';
 		}
-		$bdpdf_pages_json = wp_json_encode( $bdpdf_urls );
-		$bdpdf_page_w     = (int) $bdpdf_meta['width'];
-		$bdpdf_page_h     = (int) $bdpdf_meta['height'];
+		$bdpdf_pages_json  = wp_json_encode( $bdpdf_urls );
+		$bdpdf_page_w      = (int) $bdpdf_meta['width'];
+		$bdpdf_page_h      = (int) $bdpdf_meta['height'];
+		$bdpdf_layout      = isset( $bdpdf_meta['layout'] ) && 'spread' === $bdpdf_meta['layout'] ? 'spread' : 'single';
+		$bdpdf_cover_singl = ! empty( $bdpdf_meta['cover_single'] ) ? 1 : 0;
+		$bdpdf_tail_singl  = ! empty( $bdpdf_meta['tail_single'] ) ? 1 : 0;
 	}
 }
+
+// Im Doppelseiten-Modus bestimmt das PDF, ob der Umschlag einzeln steht –
+// nur so stimmen die Seitenpaare wieder mit den Original-Doppelseiten überein.
+$bdpdf_show_cover = 'spread' === $bdpdf_layout
+	? ( $bdpdf_cover_singl ? '1' : '0' )
+	: ( empty( $attributes['showCover'] ) ? '0' : '1' );
 
 // Darstellungsmodus wie bei Blitz & Donner Forms: theme | auto | light | dark.
 $bdpdf_appearance = isset( $attributes['appearanceMode'] ) ? sanitize_key( (string) $attributes['appearanceMode'] ) : 'auto';
@@ -55,8 +67,11 @@ $bdpdf_wrapper = get_block_wrapper_attributes(
 	data-pages="<?php echo esc_attr( $bdpdf_pages_json ); ?>"
 	data-page-w="<?php echo esc_attr( $bdpdf_page_w ); ?>"
 	data-page-h="<?php echo esc_attr( $bdpdf_page_h ); ?>"
+	data-layout="<?php echo esc_attr( $bdpdf_layout ); ?>"
+	data-cover-single="<?php echo esc_attr( $bdpdf_cover_singl ); ?>"
+	data-tail-single="<?php echo esc_attr( $bdpdf_tail_singl ); ?>"
 	<?php endif; ?>
-	data-show-cover="<?php echo empty( $attributes['showCover'] ) ? '0' : '1'; ?>"
+	data-show-cover="<?php echo esc_attr( $bdpdf_show_cover ); ?>"
 	tabindex="0"
 	role="region"
 	aria-label="<?php echo esc_attr( $bdpdf_label ); ?>">

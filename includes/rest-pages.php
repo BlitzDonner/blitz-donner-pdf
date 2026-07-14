@@ -58,10 +58,13 @@ function bdpdf_rest_get_pages( $request ) {
 	}
 	return rest_ensure_response(
 		array(
-			'count'  => (int) $meta['count'],
-			'width'  => (int) $meta['width'],
-			'height' => (int) $meta['height'],
-			'urls'   => $urls,
+			'count'        => (int) $meta['count'],
+			'width'        => (int) $meta['width'],
+			'height'       => (int) $meta['height'],
+			'layout'       => isset( $meta['layout'] ) ? $meta['layout'] : 'single',
+			'cover_single' => ! empty( $meta['cover_single'] ) ? 1 : 0,
+			'tail_single'  => ! empty( $meta['tail_single'] ) ? 1 : 0,
+			'urls'         => $urls,
 		)
 	);
 }
@@ -105,16 +108,29 @@ function bdpdf_rest_save_page( $request ) {
 	}
 
 	// Nach der letzten Seite die Metadaten setzen – erst dann gilt das
-	// Dokument als vollständig vorgerendert.
+	// Dokument als vollständig vorgerendert. Bewusst KEIN Löschen zu Beginn
+	// des Laufs: das Frontend soll während eines Neu-Renderns (z.B. nach
+	// Layout-Wechsel) durchgehend die alte, vollständige Fassung ausliefern.
+	// Erst nach erfolgreichem Abschluss fliegen überzählige Alt-Dateien raus.
 	if ( $page === $total ) {
+		foreach ( glob( $dir . '/page-*.jpg' ) ?: array() as $bdpdf_old ) {
+			$bdpdf_n = (int) preg_replace( '/\D/', '', basename( $bdpdf_old ) );
+			if ( $bdpdf_n > $total ) {
+				wp_delete_file( $bdpdf_old );
+			}
+		}
+		$layout = 'spread' === $request->get_param( 'layout' ) ? 'spread' : 'single';
 		update_post_meta(
 			$att_id,
 			'_bdpdf_pages',
 			array(
-				'count'   => $total,
-				'width'   => $width > 0 ? $width : $info[0],
-				'height'  => $height > 0 ? $height : $info[1],
-				'version' => BDPDF_VERSION,
+				'count'        => $total,
+				'width'        => $width > 0 ? $width : $info[0],
+				'height'       => $height > 0 ? $height : $info[1],
+				'layout'       => $layout,
+				'cover_single' => 'spread' === $layout && $request->get_param( 'cover_single' ) ? 1 : 0,
+				'tail_single'  => 'spread' === $layout && $request->get_param( 'tail_single' ) ? 1 : 0,
+				'version'      => BDPDF_VERSION,
 			)
 		);
 	}
@@ -139,11 +155,14 @@ add_action(
 					'callback'            => 'bdpdf_rest_save_page',
 					'permission_callback' => 'bdpdf_rest_can_edit',
 					'args'                => array(
-						'page'   => array( 'type' => 'integer', 'required' => true ),
-						'total'  => array( 'type' => 'integer', 'required' => true ),
-						'width'  => array( 'type' => 'integer', 'required' => false ),
-						'height' => array( 'type' => 'integer', 'required' => false ),
-						'image'  => array( 'type' => 'string', 'required' => true ),
+						'page'         => array( 'type' => 'integer', 'required' => true ),
+						'total'        => array( 'type' => 'integer', 'required' => true ),
+						'width'        => array( 'type' => 'integer', 'required' => false ),
+						'height'       => array( 'type' => 'integer', 'required' => false ),
+						'layout'       => array( 'type' => 'string', 'required' => false, 'enum' => array( 'single', 'spread' ) ),
+						'cover_single' => array( 'type' => 'integer', 'required' => false ),
+						'tail_single'  => array( 'type' => 'integer', 'required' => false ),
+						'image'        => array( 'type' => 'string', 'required' => true ),
 					),
 				),
 			)
