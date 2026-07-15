@@ -199,9 +199,9 @@ function setupFileMode( root ) {
 		dialog.showModal();
 		if ( ! initialisiert ) {
 			initialisiert = true;
-			// Buchhöhe im Popover deckeln: Platz für Navigation und
-			// Download-Link reservieren (Popover = 92 vh, Chrome ~24 vh).
-			bootBook( root, Math.round( window.innerHeight * 0.68 ) );
+			// Buchhöhe in der Lightbox deckeln: Platz für Navigation und
+			// Download-Link reservieren, sonst füllt das Dokument den Raum.
+			bootBook( root, Math.round( window.innerHeight * 0.76 ) );
 		}
 	};
 	root.querySelectorAll( '.bdpdf-open-dialog' ).forEach( ( knopf ) => {
