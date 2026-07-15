@@ -3,7 +3,7 @@
  * Plugin Name:       Blitz & Donner PDF
  * Plugin URI:        https://plugins.blitzdonner.ch
  * Description:       Gutenberg-Block «BD PDF», der ein PDF aus der Mediathek als blätterbares Buch anzeigt. Seiten werden nach dem Hochladen vorgerendert; PDF.js und StPageFlip sind lokal gebündelt, kein CDN.
- * Version:           0.7.1
+ * Version:           0.8.0
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Author:            Blitz & Donner
@@ -18,7 +18,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'BDPDF_VERSION', '0.7.1' );
+define( 'BDPDF_VERSION', '0.8.0' );
 define( 'BDPDF_PLUGIN_FILE', __FILE__ );
 define( 'BDPDF_TARGET_WIDTH', 2000 ); // Pixelbreite der vorgerenderten Seitenbilder.
 
@@ -39,11 +39,15 @@ function bdpdf_demo_config() {
 	for ( $i = 1; $i <= BDPDF_DEMO_COUNT; $i++ ) {
 		$pages[] = plugins_url( 'assets/demo/page-' . $i . '.jpg', BDPDF_PLUGIN_FILE );
 	}
+	$demo_pfad = plugin_dir_path( BDPDF_PLUGIN_FILE ) . 'assets/demo/pdf-demo.pdf';
 	return array(
-		'pdfUrl' => plugins_url( 'assets/demo/pdf-demo.pdf', BDPDF_PLUGIN_FILE ),
-		'pages'  => $pages,
-		'width'  => BDPDF_DEMO_WIDTH,
-		'height' => BDPDF_DEMO_HEIGHT,
+		'pdfUrl'   => plugins_url( 'assets/demo/pdf-demo.pdf', BDPDF_PLUGIN_FILE ),
+		'pages'    => $pages,
+		'width'    => BDPDF_DEMO_WIDTH,
+		'height'   => BDPDF_DEMO_HEIGHT,
+		// Formatierte Werte für die Datei-Zeile – identisch in Editor und Frontend.
+		'sizeText' => file_exists( $demo_pfad ) ? size_format( filesize( $demo_pfad ), 1 ) : '',
+		'dateText' => wp_date( get_option( 'date_format' ), strtotime( '2026-01-15' ) ),
 	);
 }
 

@@ -72,6 +72,149 @@
 	text-align: center;
 }
 
+/* ============================================================== *
+ * Datei-Zeile (displayMode=file): Spaltenraster Symbol+Titel |
+ * Grösse | Datum | Aktionen. Feste Min-Breiten der Zahlenspalten,
+ * damit gestapelte Zeilen wie eine Tabelle fluchten.
+ * ============================================================== */
+
+.wp-block-bdpdf-flipbook .bdpdf-file-row {
+	display: grid;
+	/* Feste Breiten für Grösse und Datum: nur so fluchten gestapelte,
+	   unabhängige Zeilen wie eine Tabelle (max-content würde mit dem
+	   Inhalt wandern). */
+	grid-template-columns: minmax(0, 1fr) 6em 9em max-content;
+	align-items: center;
+	gap: 1rem;
+}
+
+.wp-block-bdpdf-flipbook .bdpdf-file-main {
+	display: flex;
+	align-items: center;
+	gap: 0.6em;
+	min-width: 0;
+	background: none;
+	border: 0;
+	padding: 0;
+	margin: 0;
+	font: inherit;
+	color: inherit;
+	text-align: left;
+}
+
+.wp-block-bdpdf-flipbook button.bdpdf-file-main {
+	cursor: pointer;
+}
+
+.wp-block-bdpdf-flipbook button.bdpdf-file-main:hover .bdpdf-file-title,
+.wp-block-bdpdf-flipbook button.bdpdf-file-main:focus-visible .bdpdf-file-title {
+	text-decoration: underline;
+}
+
+.wp-block-bdpdf-flipbook .bdpdf-file-icon {
+	width: 1.6em;
+	height: 1.6em;
+	flex: 0 0 auto;
+}
+
+.wp-block-bdpdf-flipbook .bdpdf-file-title {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.wp-block-bdpdf-flipbook .bdpdf-file-size,
+.wp-block-bdpdf-flipbook .bdpdf-file-date {
+	font-variant-numeric: tabular-nums;
+	text-align: right;
+	white-space: nowrap;
+}
+
+.wp-block-bdpdf-flipbook .bdpdf-file-size,
+.wp-block-bdpdf-flipbook .bdpdf-file-date {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.wp-block-bdpdf-flipbook .bdpdf-file-actions {
+	display: flex;
+	gap: 0.5rem;
+}
+
+.wp-block-bdpdf-flipbook .bdpdf-file-actions .wp-block-button {
+	margin: 0;
+}
+
+@media (max-width: 640px) {
+	.wp-block-bdpdf-flipbook .bdpdf-file-row {
+		grid-template-columns: minmax(0, 1fr) max-content;
+	}
+	.wp-block-bdpdf-flipbook .bdpdf-file-size,
+	.wp-block-bdpdf-flipbook .bdpdf-file-date {
+		grid-column: 1;
+		text-align: left;
+		min-width: 0;
+	}
+	.wp-block-bdpdf-flipbook .bdpdf-file-actions {
+		grid-column: 2;
+		grid-row: 1 / span 3;
+		align-self: center;
+		flex-direction: column;
+	}
+}
+
+/* Popover: natives <dialog>, zentriert mit Backdrop; mobil Vollbild. */
+.wp-block-bdpdf-flipbook .bdpdf-dialog {
+	padding: 0;
+	border: 0;
+	background: transparent;
+	width: min(92vw, 72rem);
+	max-height: 92vh;
+}
+
+.wp-block-bdpdf-flipbook .bdpdf-dialog::backdrop {
+	background: rgba(0, 0, 0, 0.6);
+}
+
+.wp-block-bdpdf-flipbook .bdpdf-dialog-inhalt {
+	position: relative;
+	background: var(--bdpdf-card, #ffffff);
+	color: var(--bdpdf-text, inherit);
+	border-radius: var(--bdpdf-radius-card, 12px);
+	padding: 2.25rem 1.5rem 1.5rem;
+	max-height: 92vh;
+	overflow: auto;
+}
+
+.wp-block-bdpdf-flipbook .bdpdf-dialog-close {
+	position: absolute;
+	top: 0.4rem;
+	right: 0.6rem;
+	background: none;
+	border: 0;
+	font: inherit;
+	font-size: 1.6rem;
+	line-height: 1;
+	color: inherit;
+	cursor: pointer;
+	padding: 0.25rem;
+}
+
+@media (max-width: 640px) {
+	.wp-block-bdpdf-flipbook .bdpdf-dialog {
+		width: 100vw;
+		max-width: none;
+		max-height: none;
+		height: 100dvh;
+		margin: 0;
+	}
+	.wp-block-bdpdf-flipbook .bdpdf-dialog-inhalt {
+		min-height: 100dvh;
+		max-height: none;
+		border-radius: 0;
+	}
+}
+
 .wp-block-bdpdf-flipbook .bdpdf-fallback {
 	text-align: center;
 	margin-top: 0.5rem;

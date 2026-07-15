@@ -163,11 +163,8 @@ async function legacyRender( root ) {
 const BDPDF_SELECTOR = '.wp-block-bdpdf-flipbook[data-pdf-url]';
 
 /** Initialisiert einen Block-Wrapper genau einmal. */
-function initFlipbookRoot( root ) {
-	if ( root.dataset.bdpdfInit ) {
-		return;
-	}
-	root.dataset.bdpdfInit = '1';
+/** Buch initialisieren (vorgerenderte Seiten oder Legacy-Client-Rendering). */
+function bootBook( root ) {
 	const pages = root.dataset.pages ? JSON.parse( root.dataset.pages ) : null;
 	if ( pages && pages.length ) {
 		// Regelfall: vorgerendert → sofort verfügbar.
@@ -179,6 +176,51 @@ function initFlipbookRoot( root ) {
 		setupHiRes( root, inst, pages.length, parseInt( root.dataset.pageW, 10 ) );
 	} else {
 		legacyRender( root );
+	}
+}
+
+/**
+ * Datei-Modus: Zeile mit Popover. Das Buch im Dialog wird erst beim ersten
+ * Öffnen initialisiert (lazy) – die Seite bleibt schnell.
+ */
+function setupFileMode( root ) {
+	const dialog = root.querySelector( '.bdpdf-dialog' );
+	if ( ! dialog ) {
+		return;
+	}
+	let initialisiert = false;
+	const oeffnen = () => {
+		dialog.showModal();
+		if ( ! initialisiert ) {
+			initialisiert = true;
+			bootBook( root );
+		}
+	};
+	root.querySelectorAll( '.bdpdf-open-dialog' ).forEach( ( knopf ) => {
+		knopf.addEventListener( 'click', oeffnen );
+	} );
+	const schliessKnopf = dialog.querySelector( '.bdpdf-dialog-close' );
+	if ( schliessKnopf ) {
+		schliessKnopf.addEventListener( 'click', () => dialog.close() );
+	}
+	// Klick auf den Backdrop (= das dialog-Element selbst) schliesst;
+	// ESC liefert das native <dialog> von allein.
+	dialog.addEventListener( 'click', ( e ) => {
+		if ( e.target === dialog ) {
+			dialog.close();
+		}
+	} );
+}
+
+function initFlipbookRoot( root ) {
+	if ( root.dataset.bdpdfInit ) {
+		return;
+	}
+	root.dataset.bdpdfInit = '1';
+	if ( 'file' === root.dataset.mode ) {
+		setupFileMode( root );
+	} else {
+		bootBook( root );
 	}
 }
 

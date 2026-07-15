@@ -64,6 +64,43 @@ if ( ! in_array( $bdpdf_appearance, array( 'theme', 'auto', 'light', 'dark' ), t
 	$bdpdf_appearance = 'theme';
 }
 
+// Datei-Modus: Anzeige-Daten der Zeile (Grösse, Datum, Titel).
+$bdpdf_mode = isset( $attributes['displayMode'] ) && 'file' === $attributes['displayMode'] ? 'file' : 'book';
+$bdpdf_file_size = '';
+$bdpdf_file_date = '';
+$bdpdf_row_title = ! empty( $attributes['pdfTitle'] ) ? $attributes['pdfTitle'] : '';
+if ( 'file' === $bdpdf_mode ) {
+	$bdpdf_date_format = get_option( 'date_format' );
+	if ( $bdpdf_is_demo ) {
+		$bdpdf_file_size = $bdpdf_demo['sizeText'];
+		$bdpdf_file_date = $bdpdf_demo['dateText'];
+		if ( '' === $bdpdf_row_title ) {
+			$bdpdf_row_title = __( 'Beispiel-PDF', 'blitz-donner-pdf' );
+		}
+	} elseif ( ! empty( $attributes['pdfId'] ) ) {
+		$bdpdf_datei = get_attached_file( absint( $attributes['pdfId'] ) );
+		if ( $bdpdf_datei && file_exists( $bdpdf_datei ) ) {
+			$bdpdf_file_size = size_format( filesize( $bdpdf_datei ), 1 );
+		}
+		$bdpdf_zeit = get_post_timestamp( absint( $attributes['pdfId'] ) );
+		if ( $bdpdf_zeit ) {
+			$bdpdf_file_date = wp_date( $bdpdf_date_format, $bdpdf_zeit );
+		}
+		if ( '' === $bdpdf_row_title ) {
+			$bdpdf_row_title = wp_basename( (string) $bdpdf_datei );
+		}
+	}
+	// Redaktioneller Override (YYYY-MM-DD aus dem Datumsfeld im Inspector).
+	if ( ! empty( $attributes['dateOverride'] ) && is_string( $attributes['dateOverride'] ) ) {
+		$bdpdf_ts = strtotime( $attributes['dateOverride'] );
+		if ( $bdpdf_ts ) {
+			$bdpdf_file_date = wp_date( $bdpdf_date_format, $bdpdf_ts );
+		}
+	}
+}
+$bdpdf_show_view     = ! isset( $attributes['showViewButton'] ) || false !== $attributes['showViewButton'];
+$bdpdf_show_download = ! isset( $attributes['showDownloadButton'] ) || false !== $attributes['showDownloadButton'];
+
 // «Block-Abstand» (blockGap): Kern serialisiert ihn bei Blöcken ohne
 // Layout-Support nicht selbst – weder den Blockwert noch den globalen
 // Blockwert aus dem Website-Editor. Kette: Blockwert → globaler Blockwert
@@ -84,8 +121,9 @@ if ( empty( $attributes['style']['shadow'] ) && function_exists( 'wp_get_global_
 
 $bdpdf_wrapper = get_block_wrapper_attributes(
 	array(
-		'class'                 => 'bdpdf-flipbook',
+		'class'                 => 'bdpdf-flipbook bdpdf-mode-' . $bdpdf_mode,
 		'data-bdpdf-appearance' => $bdpdf_appearance,
+		'data-mode'             => $bdpdf_mode,
 		'style'                 => ( '' !== $bdpdf_gap ? '--bdpdf-gap:' . $bdpdf_gap . ';' : '' )
 			. ( '' !== $bdpdf_global_shadow ? '--bdpdf-book-shadow:' . $bdpdf_global_shadow . ';' : '' ),
 	)
@@ -109,23 +147,35 @@ $bdpdf_wrapper = str_replace( array( 'box-shadow:', 'box-shadow :' ), '--bdpdf-b
 	tabindex="0"
 	role="region"
 	aria-label="<?php echo esc_attr( $bdpdf_label ); ?>">
-	<div class="bdpdf-loader">
-		<p class="bdpdf-loader-text"><?php esc_html_e( 'PDF wird geladen …', 'blitz-donner-pdf' ); ?></p>
-		<progress class="bdpdf-progress" max="1" value="0"></progress>
+<?php if ( 'file' === $bdpdf_mode ) : ?>
+	<div class="bdpdf-file-row">
+		<?php $bdpdf_main_tag = $bdpdf_show_view ? 'button' : 'span'; ?>
+		<<?php echo $bdpdf_main_tag; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixes Tag. ?> <?php echo $bdpdf_show_view ? 'type="button"' : ''; ?> class="bdpdf-file-main<?php echo $bdpdf_show_view ? ' bdpdf-open-dialog' : ''; ?>">
+			<svg class="bdpdf-file-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm8 1.5V8h4.5L14 3.5zM8 13h1.6c1 0 1.7.7 1.7 1.6 0 .9-.7 1.6-1.7 1.6h-.5V18H8v-5zm1.1 2.3h.4c.4 0 .7-.3.7-.7 0-.4-.3-.7-.7-.7h-.4v1.4zm3-2.3h1.7c1.3 0 2.2 1 2.2 2.5S15.1 18 13.8 18h-1.7v-5zm1.1 4h.5c.7 0 1.1-.6 1.1-1.5s-.4-1.5-1.1-1.5h-.5v3zm3.7-4H20v1h-1.9v1.1h1.6v1h-1.6V18h-1.2v-5z"/></svg>
+			<span class="bdpdf-file-title"><?php echo esc_html( $bdpdf_row_title ); ?></span>
+		</<?php echo $bdpdf_main_tag; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixes Tag. ?>>
+		<span class="bdpdf-file-size"><?php echo esc_html( $bdpdf_file_size ); ?></span>
+		<span class="bdpdf-file-date"><?php echo esc_html( $bdpdf_file_date ); ?></span>
+		<span class="bdpdf-file-actions">
+			<?php if ( $bdpdf_show_view ) : ?>
+			<span class="wp-block-button is-style-default">
+				<button type="button" class="bdpdf-open-dialog wp-block-button__link wp-element-button"><?php esc_html_e( 'Ansehen', 'blitz-donner-pdf' ); ?></button>
+			</span>
+			<?php endif; ?>
+			<?php if ( $bdpdf_show_download ) : ?>
+			<span class="wp-block-button is-style-default">
+				<a class="wp-block-button__link wp-element-button" href="<?php echo $bdpdf_pdf_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- oben mit esc_url() escaped. ?>" download><?php esc_html_e( 'Herunterladen', 'blitz-donner-pdf' ); ?></a>
+			</span>
+			<?php endif; ?>
+		</span>
 	</div>
-	<div class="bdpdf-book" hidden></div>
-	<div class="bdpdf-nav" hidden>
-		<div class="wp-block-button is-style-default">
-			<button type="button" class="bdpdf-prev wp-block-button__link wp-element-button">&lsaquo; <?php esc_html_e( 'Zurück', 'blitz-donner-pdf' ); ?></button>
+	<dialog class="bdpdf-dialog" aria-label="<?php echo esc_attr( $bdpdf_label ); ?>">
+		<div class="bdpdf-dialog-inhalt">
+			<button type="button" class="bdpdf-dialog-close" aria-label="<?php esc_attr_e( 'Schliessen', 'blitz-donner-pdf' ); ?>">&times;</button>
+			<?php include __DIR__ . '/book-scaffold.php'; ?>
 		</div>
-		<span class="bdpdf-pageinfo" aria-live="polite"></span>
-		<div class="wp-block-button is-style-default">
-			<button type="button" class="bdpdf-next wp-block-button__link wp-element-button"><?php esc_html_e( 'Weiter', 'blitz-donner-pdf' ); ?> &rsaquo;</button>
-		</div>
-	</div>
-	<p class="bdpdf-fallback">
-		<a href="<?php echo $bdpdf_pdf_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- oben mit esc_url() escaped. ?>" download>
-			<?php esc_html_e( 'PDF herunterladen', 'blitz-donner-pdf' ); ?>
-		</a>
-	</p>
+	</dialog>
+<?php else : ?>
+	<?php include __DIR__ . '/book-scaffold.php'; ?>
+<?php endif; ?>
 </div>

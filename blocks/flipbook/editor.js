@@ -15,10 +15,10 @@
 
 	const { registerBlockType } = wp.blocks;
 	const el = wp.element.createElement;
-	const { useState, useEffect } = wp.element;
+	const { useState, useEffect, useRef, Fragment } = wp.element;
 	const { useBlockProps, MediaPlaceholder, MediaReplaceFlow, BlockControls, InspectorControls } =
 		wp.blockEditor;
-	const { PanelBody, ToggleControl, SelectControl, Spinner, Button } = wp.components;
+	const { PanelBody, ToggleControl, SelectControl, Spinner, Button, TextControl } = wp.components;
 	const { __ } = wp.i18n;
 	const { useSelect } = wp.data;
 	const apiFetch = wp.apiFetch;
@@ -159,6 +159,7 @@
 	registerBlockType( 'bdpdf/flipbook', {
 		edit: function ( props ) {
 			const { attributes, setAttributes } = props;
+			const modus = 'file' === attributes.displayMode ? 'file' : 'book';
 			// Globale Stile für diesen Block (Website-Editor → Stile → Blöcke):
 			// Kern gibt blockGap ohne Layout-Support und Schatten fürs Buch
 			// nicht selbst aus – darum hier LIVE aus dem Datenspeicher lesen.
@@ -183,8 +184,9 @@
 					: ( globalBlock.spacing && 'string' === typeof globalBlock.spacing.blockGap ? globalBlock.spacing.blockGap : '' )
 			);
 			const blockProps = useBlockProps( {
-				className: 'bdpdf-flipbook bdpdf-editor',
+				className: 'bdpdf-flipbook bdpdf-editor bdpdf-mode-' + modus,
 				'data-bdpdf-appearance': attributes.appearanceMode || 'theme',
+				'data-mode': modus,
 				style: bdpdfGap ? { '--bdpdf-gap': bdpdfGap } : undefined,
 			} );
 			// Schatten gehört aufs Buch, nicht auf den Wrapper: den vom
@@ -205,11 +207,36 @@
 			const [ status, setStatus ]       = useState( 'leer' ); // leer | prueft | rendert | bereit | fehler
 			const [ progress, setProgress ]   = useState( { done: 0, total: 0 } );
 			const [ pages, setPages ]         = useState( null );
-			const [ pagesMeta, setPagesMeta ] = useState( { coverSingle: false, w: 0, h: 0 } );
+			const [ pagesMeta, setPagesMeta ] = useState( { coverSingle: false, w: 0, h: 0, sizeText: '', dateText: '' } );
 			const [ spreadIdx, setSpreadIdx ] = useState( 0 );
 			const pageLayout = attributes.pageLayout || 'single';
 			const istDemo    = !! attributes.useDemo && ! attributes.pdfId;
 			const pdfHref    = attributes.pdfUrl || ( istDemo && CFG().demo ? CFG().demo.pdfUrl : '' );
+			const zeigeView  = false !== attributes.showViewButton;
+			const zeigeDown  = false !== attributes.showDownloadButton;
+			const [ dialogOffen, setDialogOffen ] = useState( false );
+			const dialogRef  = useRef( null );
+
+			// Dialog im Editor: natives <dialog> wie im Frontend (Pixelgleichheit).
+			useEffect( () => {
+				const d = dialogRef.current;
+				if ( ! d ) {
+					return;
+				}
+				if ( dialogOffen && ! d.open ) {
+					try {
+						d.showModal();
+					} catch ( e ) {} // eslint-disable-line no-empty
+				}
+				const zu = () => setDialogOffen( false );
+				d.addEventListener( 'close', zu );
+				return () => {
+					d.removeEventListener( 'close', zu );
+					if ( d.open ) {
+						d.close();
+					}
+				};
+			}, [ dialogOffen ] );
 
 			const onSelect = function ( media ) {
 				setPages( null );
@@ -234,7 +261,7 @@
 				if ( attributes.useDemo && ! attributes.pdfId ) {
 					const demo = CFG().demo || {};
 					setPages( demo.pages || [] );
-					setPagesMeta( { coverSingle: false, w: demo.width || 0, h: demo.height || 0 } );
+					setPagesMeta( { coverSingle: false, w: demo.width || 0, h: demo.height || 0, sizeText: demo.sizeText || '', dateText: demo.dateText || '' } );
 					setSpreadIdx( 0 );
 					setStatus( 'bereit' );
 					return;
@@ -246,7 +273,13 @@
 				let cancelled = false;
 				const uebernehmen = ( info ) => {
 					setPages( info.urls );
-					setPagesMeta( { coverSingle: !! info.cover_single, w: info.width || 0, h: info.height || 0 } );
+					setPagesMeta( {
+						coverSingle: !! info.cover_single,
+						w: info.width || 0,
+						h: info.height || 0,
+						sizeText: info.file_size_text || '',
+						dateText: info.file_date_text || '',
+					} );
 					setSpreadIdx( 0 );
 					setStatus( 'bereit' );
 				};
@@ -359,7 +392,7 @@
 						kinder.push( el( 'div', { className: 'bdpdf-page-blank', key: 'blank' } ) );
 					}
 				}
-				inhalt = [
+				const buchTeile = [
 					el(
 						'div',
 						{
@@ -410,6 +443,106 @@
 						el( 'a', { href: pdfHref, download: true }, __( 'PDF herunterladen', 'blitz-donner-pdf' ) )
 					),
 				];
+
+				if ( 'file' === modus ) {
+					// Datei-Zeile: identisches Markup wie render.php; das Buch
+					// erscheint im nativen <dialog> (statische Vorschau).
+					const zeileTitel = attributes.pdfTitle
+						|| ( istDemo
+							? __( 'Beispiel-PDF', 'blitz-donner-pdf' )
+							: decodeURIComponent( ( attributes.pdfUrl.split( '/' ).pop() || '' ) ) );
+					const datumText = attributes.dateOverride && wp.date
+						? wp.date.dateI18n( wp.date.getSettings().formats.date, attributes.dateOverride )
+						: pagesMeta.dateText;
+					const oeffnen = () => setDialogOffen( true );
+					const iconPfad = 'M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm8 1.5V8h4.5L14 3.5zM8 13h1.6c1 0 1.7.7 1.7 1.6 0 .9-.7 1.6-1.7 1.6h-.5V18H8v-5zm1.1 2.3h.4c.4 0 .7-.3.7-.7 0-.4-.3-.7-.7-.7h-.4v1.4zm3-2.3h1.7c1.3 0 2.2 1 2.2 2.5S15.1 18 13.8 18h-1.7v-5zm1.1 4h.5c.7 0 1.1-.6 1.1-1.5s-.4-1.5-1.1-1.5h-.5v3zm3.7-4H20v1h-1.9v1.1h1.6v1h-1.6V18h-1.2v-5z';
+					inhalt = [
+						el(
+							'div',
+							{ className: 'bdpdf-file-row', key: 'row' },
+							el(
+								zeigeView ? 'button' : 'span',
+								{
+									className: 'bdpdf-file-main' + ( zeigeView ? ' bdpdf-open-dialog' : '' ),
+									type: zeigeView ? 'button' : undefined,
+									onClick: zeigeView ? oeffnen : undefined,
+								},
+								el(
+									'svg',
+									{ className: 'bdpdf-file-icon', viewBox: '0 0 24 24', 'aria-hidden': 'true', focusable: 'false' },
+									el( 'path', { fill: 'currentColor', d: iconPfad } )
+								),
+								el( 'span', { className: 'bdpdf-file-title' }, zeileTitel )
+							),
+							el( 'span', { className: 'bdpdf-file-size' }, pagesMeta.sizeText || '' ),
+							el( 'span', { className: 'bdpdf-file-date' }, datumText || '' ),
+							el(
+								'span',
+								{ className: 'bdpdf-file-actions' },
+								zeigeView
+									? el(
+										'span',
+										{ className: 'wp-block-button is-style-default' },
+										el(
+											'button',
+											{ type: 'button', className: 'bdpdf-open-dialog wp-block-button__link wp-element-button', onClick: oeffnen },
+											__( 'Ansehen', 'blitz-donner-pdf' )
+										)
+									)
+									: null,
+								zeigeDown
+									? el(
+										'span',
+										{ className: 'wp-block-button is-style-default' },
+										el(
+											'a',
+											{
+												className: 'wp-block-button__link wp-element-button',
+												href: pdfHref,
+												download: true,
+												onClick: ( e ) => e.preventDefault(),
+											},
+											__( 'Herunterladen', 'blitz-donner-pdf' )
+										)
+									)
+									: null
+							)
+						),
+						dialogOffen
+							? el(
+								'dialog',
+								{
+									className: 'bdpdf-dialog',
+									key: 'dialog',
+									ref: dialogRef,
+									'aria-label': zeileTitel,
+									onClick: ( e ) => {
+										if ( e.target === dialogRef.current ) {
+											setDialogOffen( false );
+										}
+									},
+								},
+								el(
+									'div',
+									{ className: 'bdpdf-dialog-inhalt' },
+									el(
+										'button',
+										{
+											type: 'button',
+											className: 'bdpdf-dialog-close',
+											'aria-label': __( 'Schliessen', 'blitz-donner-pdf' ),
+											onClick: () => setDialogOffen( false ),
+										},
+										'\u00d7'
+									),
+									buchTeile
+								)
+							)
+							: null,
+					];
+				} else {
+					inhalt = buchTeile;
+				}
 			} else {
 				inhalt = [
 					el(
@@ -449,6 +582,62 @@
 					el(
 						PanelBody,
 						{ title: __( 'Flipbook-Einstellungen', 'blitz-donner-pdf' ) },
+						el( SelectControl, {
+							__next40pxDefaultSize: true,
+							__nextHasNoMarginBottom: true,
+							label: __( 'Darstellung', 'blitz-donner-pdf' ),
+							value: modus,
+							options: [
+								{ label: __( 'Buch (blätterbar auf der Seite)', 'blitz-donner-pdf' ), value: 'book' },
+								{ label: __( 'Datei-Zeile (Download, Ansehen im Popover)', 'blitz-donner-pdf' ), value: 'file' },
+							],
+							onChange: function ( value ) {
+								setAttributes( { displayMode: 'file' === value ? 'file' : 'book' } );
+							},
+						} ),
+						'file' === modus
+							? el(
+								Fragment,
+								null,
+								el( TextControl, {
+									__next40pxDefaultSize: true,
+									__nextHasNoMarginBottom: true,
+									label: __( 'Titel der Zeile', 'blitz-donner-pdf' ),
+									help: __( 'Leer = Dateiname aus der Mediathek.', 'blitz-donner-pdf' ),
+									value: attributes.pdfTitle || '',
+									onChange: function ( value ) {
+										setAttributes( { pdfTitle: value } );
+									},
+								} ),
+								el( TextControl, {
+									__next40pxDefaultSize: true,
+									__nextHasNoMarginBottom: true,
+									type: 'date',
+									label: __( 'Erstellungsdatum überschreiben', 'blitz-donner-pdf' ),
+									help: __( 'Leer = Hochlade-Datum aus der Mediathek. Gilt nur für diesen Block.', 'blitz-donner-pdf' ),
+									value: attributes.dateOverride || '',
+									onChange: function ( value ) {
+										setAttributes( { dateOverride: value || '' } );
+									},
+								} ),
+								el( ToggleControl, {
+									__nextHasNoMarginBottom: true,
+									label: __( '«Ansehen»-Knopf (Popover)', 'blitz-donner-pdf' ),
+									checked: zeigeView,
+									onChange: function ( value ) {
+										setAttributes( { showViewButton: value } );
+									},
+								} ),
+								el( ToggleControl, {
+									__nextHasNoMarginBottom: true,
+									label: __( '«Herunterladen»-Knopf', 'blitz-donner-pdf' ),
+									checked: zeigeDown,
+									onChange: function ( value ) {
+										setAttributes( { showDownloadButton: value } );
+									},
+								} )
+							)
+							: null,
 						istDemo
 							? el(
 								'p',

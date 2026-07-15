@@ -49,8 +49,22 @@ function bdpdf_pages_base( $att_id, $url = false ) {
 function bdpdf_rest_get_pages( $request ) {
 	$att_id = absint( $request['id'] );
 	$meta   = get_post_meta( $att_id, '_bdpdf_pages', true );
+
+	// Formatierte Werte für die Datei-Zeile (gleiche Funktionen wie render.php,
+	// damit Editor und Frontend zeichengenau übereinstimmen).
+	$datei     = get_attached_file( $att_id );
+	$size_text = $datei && file_exists( $datei ) ? size_format( filesize( $datei ), 1 ) : '';
+	$zeit      = get_post_timestamp( $att_id );
+	$date_text = $zeit ? wp_date( get_option( 'date_format' ), $zeit ) : '';
+
 	if ( empty( $meta['count'] ) ) {
-		return rest_ensure_response( array( 'count' => 0 ) );
+		return rest_ensure_response(
+			array(
+				'count'          => 0,
+				'file_size_text' => $size_text,
+				'file_date_text' => $date_text,
+			)
+		);
 	}
 	$urls = array();
 	for ( $i = 1; $i <= (int) $meta['count']; $i++ ) {
@@ -58,6 +72,8 @@ function bdpdf_rest_get_pages( $request ) {
 	}
 	return rest_ensure_response(
 		array(
+			'file_size_text' => $size_text,
+			'file_date_text' => $date_text,
 			'count'        => (int) $meta['count'],
 			'width'        => (int) $meta['width'],
 			'height'       => (int) $meta['height'],

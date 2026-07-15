@@ -35,6 +35,9 @@ Das Plugin ist auf dem Update-Server (plugins.blitzdonner.ch) als **freies Plugi
 ## Beispiel-PDF (seit 0.6.0)
 `assets/demo/` bündelt ein vierseitiges Beispiel-PDF samt vorgerenderten Seitenbildern (898 px). Es füllt die Block-Vorschau (`example` in block.json → Auge im Inserter und Stilbuch) und den «Ausprobieren»-Modus: Attribut `useDemo`, Knopf im Platzhalter. Editor und Frontend zeigen das Demo-Buch ohne REST-Aufrufe; die Auswahl eines eigenen PDFs beendet den Modus. Konfiguration liefert `bdpdf_demo_config()`.
 
+## Datei-Zeile (seit 0.8.0)
+Attribut `displayMode` (`book` | `file`), als Blockvarianten im Inserter. Die Zeile (render.php, Partial `book-scaffold.php` fürs geteilte Buch-Gerüst) zeigt Symbol, Titel, Grösse (`size_format`), Datum (`wp_date` mit Site-Format; Override-Attribut `dateOverride`, YYYY-MM-DD) und die Knöpfe «Ansehen»/«Herunterladen» (`showViewButton`/`showDownloadButton`). Das Popover ist ein natives `<dialog>`; das Buch darin initialisiert view.mjs lazy beim ersten Öffnen. Formatierte Grösse/Datum liefert der Server (REST `bdpdf/v1/pages` bzw. `bdpdf_demo_config()`), damit Editor und Frontend zeichengenau übereinstimmen.
+
 ## Seitenlayout (seit 0.5.0)
 Einstellung im Zahnrad-Tab: **Einzelseiten** (Standard, jede PDF-Seite = eine Buchseite) oder **Doppelseiten** (jede PDF-Seite enthält eine Druck-Doppelseite und wird beim Vorab-Rendern am Bund geteilt). Schmale erste/letzte Seiten (< 75 % der Maximalbreite) gelten automatisch als einzelner Umschlag; die Buchdeckel-Logik folgt im Doppelseiten-Modus dieser Erkennung statt dem Schalter. Das Hi-Res-Nachrendern im Frontend rechnet Buchseiten auf PDF-Seite und Hälfte zurück (bookToPdf in view.mjs).
 

@@ -4,7 +4,7 @@ Tags: pdf, flipbook, block, media
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.7.1
+Stable tag: 0.8.0
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -42,6 +42,10 @@ Nein. Alle Bibliotheken liegen im Plugin, das PDF kommt aus der eigenen Mediathe
 Alle Seiten werden im Browser vorgerendert. Bis etwa 60 Seiten bleibt die Ladezeit angenehm; darüber steigt sie spürbar.
 
 == Changelog ==
+
+= 0.8.0 =
+* Neu: Darstellung «Datei-Zeile» – der Block als kompakte Download-Zeile mit PDF-Symbol, Titel, Dateigrösse und Erstellungsdatum (pro Block überschreibbar). «Ansehen» öffnet das blätterbare PDF in einem Popover (mobil Vollbild), «Herunterladen» lädt die Datei direkt; beide Knöpfe sind abschaltbar. Mehrere Zeilen untereinander fluchten wie eine Tabelle.
+* Der Block erscheint im Einfüge-Menü als zwei Varianten: «BD PDF – Buch» und «BD PDF – Datei-Zeile».
 
 = 0.7.1 =
 * Globale Stile im Website-Editor wirken jetzt vollständig: Der Block liest «Block-Abstand» und «Schatten» aus Design → Editor → Stile → Blöcke selbst (live im Editor, per wp_get_global_styles im Frontend). WordPress gibt beide Werte für Blöcke ohne Layout-Support sonst nicht aus.
