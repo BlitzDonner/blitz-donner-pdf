@@ -4,7 +4,7 @@ Tags: pdf, flipbook, block, media
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.8.3
+Stable tag: 0.8.4
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -42,6 +42,9 @@ Nein. Alle Bibliotheken liegen im Plugin, das PDF kommt aus der eigenen Mediathe
 Alle Seiten werden im Browser vorgerendert. Bis etwa 60 Seiten bleibt die Ladezeit angenehm; darüber steigt sie spürbar.
 
 == Changelog ==
+
+= 0.8.4 =
+* «Block-Abstand» wirkt wieder im Popover: Er steuert dort den Abstand zwischen PDF und Navigation (war in der Lightbox-Umgestaltung fix geworden). Im Buch-Modus unverändert.
 
 = 0.8.3 =
 * Datei-Zeile auf das Wesentliche reduziert: Symbol, frei definierbare Beschriftung und die zwei Links «Ansehen»/«Herunterladen». Grösse und Datum entfallen – solche Angaben ergänzt die Redaktion bei Bedarf als eigenen Inhalt daneben.
