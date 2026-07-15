@@ -451,9 +451,6 @@
 						|| ( istDemo
 							? __( 'Beispiel-PDF', 'blitz-donner-pdf' )
 							: decodeURIComponent( ( attributes.pdfUrl.split( '/' ).pop() || '' ) ) );
-					const datumText = attributes.dateOverride && wp.date
-						? wp.date.dateI18n( wp.date.getSettings().formats.date, attributes.dateOverride )
-						: pagesMeta.dateText;
 					const oeffnen = () => setDialogOffen( true );
 					const iconPfad = 'M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm8 1.5V8h4.5L14 3.5zM8 13h1.6c1 0 1.7.7 1.7 1.6 0 .9-.7 1.6-1.7 1.6h-.5V18H8v-5zm1.1 2.3h.4c.4 0 .7-.3.7-.7 0-.4-.3-.7-.7-.7h-.4v1.4zm3-2.3h1.7c1.3 0 2.2 1 2.2 2.5S15.1 18 13.8 18h-1.7v-5zm1.1 4h.5c.7 0 1.1-.6 1.1-1.5s-.4-1.5-1.1-1.5h-.5v3zm3.7-4H20v1h-1.9v1.1h1.6v1h-1.6V18h-1.2v-5z';
 					inhalt = [
@@ -468,10 +465,8 @@
 									{ className: 'bdpdf-file-icon', viewBox: '0 0 24 24', 'aria-hidden': 'true', focusable: 'false' },
 									el( 'path', { fill: 'currentColor', d: iconPfad } )
 								),
-								el( 'span', { className: 'bdpdf-file-title', title: zeileTitel }, zeileTitel )
+								el( 'span', { className: 'bdpdf-file-title' }, zeileTitel )
 							),
-							el( 'span', { className: 'bdpdf-file-size' }, pagesMeta.sizeText || '' ),
-							el( 'span', { className: 'bdpdf-file-date' }, datumText || '' ),
 							el(
 								'span',
 								{ className: 'bdpdf-file-actions' },
@@ -597,22 +592,11 @@
 								el( TextControl, {
 									__next40pxDefaultSize: true,
 									__nextHasNoMarginBottom: true,
-									label: __( 'Titel der Zeile', 'blitz-donner-pdf' ),
-									help: __( 'Leer = Dateiname aus der Mediathek.', 'blitz-donner-pdf' ),
+									label: __( 'Beschriftung', 'blitz-donner-pdf' ),
+									help: __( 'Text neben dem Symbol. Leer = Dateiname aus der Mediathek.', 'blitz-donner-pdf' ),
 									value: attributes.pdfTitle || '',
 									onChange: function ( value ) {
 										setAttributes( { pdfTitle: value } );
-									},
-								} ),
-								el( TextControl, {
-									__next40pxDefaultSize: true,
-									__nextHasNoMarginBottom: true,
-									type: 'date',
-									label: __( 'Erstellungsdatum überschreiben', 'blitz-donner-pdf' ),
-									help: __( 'Leer = Hochlade-Datum aus der Mediathek. Gilt nur für diesen Block.', 'blitz-donner-pdf' ),
-									value: attributes.dateOverride || '',
-									onChange: function ( value ) {
-										setAttributes( { dateOverride: value || '' } );
 									},
 								} ),
 								el( ToggleControl, {

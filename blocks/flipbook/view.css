@@ -73,89 +73,48 @@
 }
 
 /* ============================================================== *
- * Datei-Zeile (displayMode=file). Responsiv über eine Container-Query
- * (der Block ist der Container): ist genug Platz da, steht alles in
- * einer Tabellen-Zeile und gestapelte Zeilen fluchten; wird es eng,
- * bricht die Zeile um (Titel voll, darunter Meta + Aktionen) – nichts
- * wird abgeschnitten. Best practice statt fixem Quetschen.
+ * Datei-Zeile (displayMode=file): Symbol + frei definierbarer Text,
+ * rechts die zwei Aktions-Links. Bewusst schlicht – Metadaten wie
+ * Grösse oder Datum ergänzt die Redaktion als eigenen Inhalt.
+ * Flexbox mit Umbruch: die Aktionen rutschen bei Enge unter den Text.
  * ============================================================== */
-
-.wp-block-bdpdf-flipbook.bdpdf-mode-file {
-	container-type: inline-size;
-}
-
-/* Schmaler Standard (mobile-first): zwei Reihen, nichts wird gekürzt. */
 .wp-block-bdpdf-flipbook .bdpdf-file-row {
-	display: grid;
-	grid-template-columns: 1fr auto;
+	display: flex;
 	align-items: center;
-	gap: 0.5rem 1rem;
+	flex-wrap: wrap;
+	gap: 0.5rem 1.5rem;
 }
 
-.wp-block-bdpdf-flipbook .bdpdf-file-main {
-	grid-column: 1 / -1;
-}
-
-.wp-block-bdpdf-flipbook .bdpdf-file-size {
-	grid-column: 1;
-	justify-self: start;
-}
-
-.wp-block-bdpdf-flipbook .bdpdf-file-date {
-	grid-column: 1;
-	justify-self: start;
-}
-
-.wp-block-bdpdf-flipbook .bdpdf-file-actions {
-	grid-column: 2;
-	grid-row: 2 / span 2;
-	align-self: center;
-}
-
-/* Breit: eine Tabellen-Zeile. Feste Meta-Spalten (rem, schriftunabhängig)
-   sorgen für die Fluchtung gestapelter Zeilen; der Titel nimmt den Rest. */
-@container (min-width: 34rem) {
-	.wp-block-bdpdf-flipbook .bdpdf-file-row {
-		grid-template-columns: minmax(6rem, 1fr) max-content max-content max-content;
-		gap: 1.25rem;
-	}
-	.wp-block-bdpdf-flipbook .bdpdf-file-main {
-		grid-column: auto;
-	}
-	.wp-block-bdpdf-flipbook .bdpdf-file-size,
-	.wp-block-bdpdf-flipbook .bdpdf-file-date {
-		grid-column: auto;
-		grid-row: auto;
-		justify-self: end;
-		min-width: 7ch;
-	}
-	.wp-block-bdpdf-flipbook .bdpdf-file-date {
-		min-width: 10ch;
-	}
-	.wp-block-bdpdf-flipbook .bdpdf-file-actions {
-		grid-column: auto;
-		grid-row: auto;
-	}
-}
-
-/* Titel-Zelle: dekoratives Icon + Titeltext, NICHT interaktiv. Die Aktionen
-   liegen bewusst getrennt als Textlinks in der Aktions-Spalte. */
 .wp-block-bdpdf-flipbook .bdpdf-file-main {
 	display: flex;
 	align-items: center;
 	gap: 0.6em;
 	min-width: 0;
+	flex: 1 1 auto;
 }
 
 .wp-block-bdpdf-flipbook .bdpdf-file-icon {
 	width: 1.4em;
 	height: 1.4em;
 	flex: 0 0 auto;
+	opacity: 0.85;
+}
+
+.wp-block-bdpdf-flipbook .bdpdf-file-title {
+	min-width: 0;
 }
 
 /* Aktionen als Textlinks – «Herunterladen» ist ein echter Link, «Ansehen»
    ein als Link gestylter Button (öffnet ein Overlay, navigiert nicht). Beide
    ohne Button-Chrome; Unterstreichung bei Hover/Fokus wie ein Textlink. */
+.wp-block-bdpdf-flipbook .bdpdf-file-actions {
+	display: flex;
+	align-items: center;
+	gap: 1.5rem;
+	flex: 0 0 auto;
+	white-space: nowrap;
+}
+
 .wp-block-bdpdf-flipbook .bdpdf-file-link {
 	background: none;
 	border: 0;
@@ -172,27 +131,6 @@
 .wp-block-bdpdf-flipbook .bdpdf-file-link:hover,
 .wp-block-bdpdf-flipbook .bdpdf-file-link:focus-visible {
 	text-decoration: none;
-}
-
-.wp-block-bdpdf-flipbook .bdpdf-file-title {
-	flex: 1 1 auto;
-	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.wp-block-bdpdf-flipbook .bdpdf-file-size,
-.wp-block-bdpdf-flipbook .bdpdf-file-date {
-	font-variant-numeric: tabular-nums;
-	white-space: nowrap;
-}
-
-.wp-block-bdpdf-flipbook .bdpdf-file-actions {
-	display: flex;
-	align-items: center;
-	gap: 1.25rem;
-	white-space: nowrap;
 }
 
 /* ============================================================== *
