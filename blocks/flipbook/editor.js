@@ -461,18 +461,14 @@
 							'div',
 							{ className: 'bdpdf-file-row', key: 'row' },
 							el(
-								zeigeView ? 'button' : 'span',
-								{
-									className: 'bdpdf-file-main' + ( zeigeView ? ' bdpdf-open-dialog' : '' ),
-									type: zeigeView ? 'button' : undefined,
-									onClick: zeigeView ? oeffnen : undefined,
-								},
+								'span',
+								{ className: 'bdpdf-file-main' },
 								el(
 									'svg',
 									{ className: 'bdpdf-file-icon', viewBox: '0 0 24 24', 'aria-hidden': 'true', focusable: 'false' },
 									el( 'path', { fill: 'currentColor', d: iconPfad } )
 								),
-								el( 'span', { className: 'bdpdf-file-title' }, zeileTitel )
+								el( 'span', { className: 'bdpdf-file-title', title: zeileTitel }, zeileTitel )
 							),
 							el( 'span', { className: 'bdpdf-file-size' }, pagesMeta.sizeText || '' ),
 							el( 'span', { className: 'bdpdf-file-date' }, datumText || '' ),
@@ -481,29 +477,28 @@
 								{ className: 'bdpdf-file-actions' },
 								zeigeView
 									? el(
-										'span',
-										{ className: 'wp-block-button is-style-default' },
-										el(
-											'button',
-											{ type: 'button', className: 'bdpdf-open-dialog wp-block-button__link wp-element-button', onClick: oeffnen },
-											__( 'Ansehen', 'blitz-donner-pdf' )
-										)
+										'button',
+										{
+											type: 'button',
+											className: 'bdpdf-file-link bdpdf-open-dialog',
+											'aria-haspopup': 'dialog',
+											'aria-label': zeileTitel + ' ' + __( 'ansehen', 'blitz-donner-pdf' ),
+											onClick: oeffnen,
+										},
+										__( 'Ansehen', 'blitz-donner-pdf' )
 									)
 									: null,
 								zeigeDown
 									? el(
-										'span',
-										{ className: 'wp-block-button is-style-default' },
-										el(
-											'a',
-											{
-												className: 'wp-block-button__link wp-element-button',
-												href: pdfHref,
-												download: true,
-												onClick: ( e ) => e.preventDefault(),
-											},
-											__( 'Herunterladen', 'blitz-donner-pdf' )
-										)
+										'a',
+										{
+											className: 'bdpdf-file-link',
+											href: pdfHref,
+											download: true,
+											'aria-label': zeileTitel + ' ' + __( 'herunterladen', 'blitz-donner-pdf' ),
+											onClick: ( e ) => e.preventDefault(),
+										},
+										__( 'Herunterladen', 'blitz-donner-pdf' )
 									)
 									: null
 							)

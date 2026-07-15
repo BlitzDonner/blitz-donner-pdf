@@ -55,14 +55,24 @@
 
 		const ratio    = opts.pageHeight / opts.pageWidth;
 		const baseW    = Math.round( opts.pageWidth / 2 );
+		// Optionale Höhen-Obergrenze (Popover): das Buch soll nie höher werden
+		// als der verfügbare Platz, damit Navigation und Download sichtbar
+		// bleiben. maxWidth folgt aus der Höhe über das Seitenverhältnis,
+		// damit StPageFlip proportional verkleinert statt zu verzerren.
+		const maxHeight = opts.maxHeight && opts.maxHeight > 0
+			? Math.round( opts.maxHeight )
+			: opts.pageHeight;
+		const maxWidth  = opts.maxHeight && opts.maxHeight > 0
+			? Math.min( opts.pageWidth, Math.round( maxHeight / ratio ) )
+			: opts.pageWidth;
 		const pageFlip = new St.PageFlip( bookEl, {
 			width: baseW,
 			height: Math.round( baseW * ratio ),
 			size: 'stretch',
 			minWidth: 240,
 			minHeight: Math.round( 240 * ratio ),
-			maxWidth: opts.pageWidth,
-			maxHeight: opts.pageHeight,
+			maxWidth: maxWidth,
+			maxHeight: maxHeight,
 			showCover: false !== opts.showCover,
 			maxShadowOpacity: 0.4,
 			flippingTime: 700,

@@ -163,8 +163,13 @@ async function legacyRender( root ) {
 const BDPDF_SELECTOR = '.wp-block-bdpdf-flipbook[data-pdf-url]';
 
 /** Initialisiert einen Block-Wrapper genau einmal. */
-/** Buch initialisieren (vorgerenderte Seiten oder Legacy-Client-Rendering). */
-function bootBook( root ) {
+/**
+ * Buch initialisieren (vorgerenderte Seiten oder Legacy-Client-Rendering).
+ *
+ * @param {HTMLElement} root      Block-Wrapper.
+ * @param {number}      maxHeight Optionale Höhen-Obergrenze in Pixeln (Popover).
+ */
+function bootBook( root, maxHeight ) {
 	const pages = root.dataset.pages ? JSON.parse( root.dataset.pages ) : null;
 	if ( pages && pages.length ) {
 		// Regelfall: vorgerendert → sofort verfügbar.
@@ -172,6 +177,7 @@ function bootBook( root ) {
 			pageWidth: parseInt( root.dataset.pageW, 10 ),
 			pageHeight: parseInt( root.dataset.pageH, 10 ),
 			showCover: '1' === root.dataset.showCover,
+			maxHeight: maxHeight || 0,
 		} );
 		setupHiRes( root, inst, pages.length, parseInt( root.dataset.pageW, 10 ) );
 	} else {
@@ -193,7 +199,9 @@ function setupFileMode( root ) {
 		dialog.showModal();
 		if ( ! initialisiert ) {
 			initialisiert = true;
-			bootBook( root );
+			// Buchhöhe im Popover deckeln: Platz für Navigation und
+			// Download-Link reservieren (Popover = 92 vh, Chrome ~24 vh).
+			bootBook( root, Math.round( window.innerHeight * 0.68 ) );
 		}
 	};
 	root.querySelectorAll( '.bdpdf-open-dialog' ).forEach( ( knopf ) => {

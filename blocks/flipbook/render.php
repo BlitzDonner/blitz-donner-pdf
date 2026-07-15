@@ -148,24 +148,25 @@ $bdpdf_wrapper = str_replace( array( 'box-shadow:', 'box-shadow :' ), '--bdpdf-b
 	role="region"
 	aria-label="<?php echo esc_attr( $bdpdf_label ); ?>">
 <?php if ( 'file' === $bdpdf_mode ) : ?>
+	<?php
+	// Barrierefreie Aktionsnamen: sichtbarer Text bleibt kurz («Ansehen»),
+	// der Screenreader hört den Dateibezug – wichtig bei mehreren Zeilen.
+	$bdpdf_view_label = sprintf( /* translators: %s: Dateiname/Titel. */ __( '%s ansehen', 'blitz-donner-pdf' ), $bdpdf_row_title );
+	$bdpdf_down_label = sprintf( /* translators: %s: Dateiname/Titel. */ __( '%s herunterladen', 'blitz-donner-pdf' ), $bdpdf_row_title );
+	?>
 	<div class="bdpdf-file-row">
-		<?php $bdpdf_main_tag = $bdpdf_show_view ? 'button' : 'span'; ?>
-		<<?php echo $bdpdf_main_tag; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixes Tag. ?> <?php echo $bdpdf_show_view ? 'type="button"' : ''; ?> class="bdpdf-file-main<?php echo $bdpdf_show_view ? ' bdpdf-open-dialog' : ''; ?>">
+		<span class="bdpdf-file-main">
 			<svg class="bdpdf-file-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm8 1.5V8h4.5L14 3.5zM8 13h1.6c1 0 1.7.7 1.7 1.6 0 .9-.7 1.6-1.7 1.6h-.5V18H8v-5zm1.1 2.3h.4c.4 0 .7-.3.7-.7 0-.4-.3-.7-.7-.7h-.4v1.4zm3-2.3h1.7c1.3 0 2.2 1 2.2 2.5S15.1 18 13.8 18h-1.7v-5zm1.1 4h.5c.7 0 1.1-.6 1.1-1.5s-.4-1.5-1.1-1.5h-.5v3zm3.7-4H20v1h-1.9v1.1h1.6v1h-1.6V18h-1.2v-5z"/></svg>
-			<span class="bdpdf-file-title"><?php echo esc_html( $bdpdf_row_title ); ?></span>
-		</<?php echo $bdpdf_main_tag; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixes Tag. ?>>
+			<span class="bdpdf-file-title" title="<?php echo esc_attr( $bdpdf_row_title ); ?>"><?php echo esc_html( $bdpdf_row_title ); ?></span>
+		</span>
 		<span class="bdpdf-file-size"><?php echo esc_html( $bdpdf_file_size ); ?></span>
 		<span class="bdpdf-file-date"><?php echo esc_html( $bdpdf_file_date ); ?></span>
 		<span class="bdpdf-file-actions">
 			<?php if ( $bdpdf_show_view ) : ?>
-			<span class="wp-block-button is-style-default">
-				<button type="button" class="bdpdf-open-dialog wp-block-button__link wp-element-button"><?php esc_html_e( 'Ansehen', 'blitz-donner-pdf' ); ?></button>
-			</span>
+			<button type="button" class="bdpdf-file-link bdpdf-open-dialog" aria-haspopup="dialog" aria-label="<?php echo esc_attr( $bdpdf_view_label ); ?>"><?php esc_html_e( 'Ansehen', 'blitz-donner-pdf' ); ?></button>
 			<?php endif; ?>
 			<?php if ( $bdpdf_show_download ) : ?>
-			<span class="wp-block-button is-style-default">
-				<a class="wp-block-button__link wp-element-button" href="<?php echo $bdpdf_pdf_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- oben mit esc_url() escaped. ?>" download><?php esc_html_e( 'Herunterladen', 'blitz-donner-pdf' ); ?></a>
-			</span>
+			<a class="bdpdf-file-link" href="<?php echo $bdpdf_pdf_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- oben mit esc_url() escaped. ?>" download aria-label="<?php echo esc_attr( $bdpdf_down_label ); ?>"><?php esc_html_e( 'Herunterladen', 'blitz-donner-pdf' ); ?></a>
 			<?php endif; ?>
 		</span>
 	</div>

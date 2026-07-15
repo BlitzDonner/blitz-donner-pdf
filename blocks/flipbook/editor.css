@@ -33,3 +33,18 @@
 	height: 100%;
 	object-fit: fill;
 }
+
+/* Im Popover: die statische Vorschau über die Höhe begrenzen (wie im Frontend
+   das StPageFlip-Buch), damit Navigation und Download sichtbar bleiben. Die
+   Seiten fixieren ihre Höhe, die Breite folgt aus dem Seitenverhältnis. */
+.bdpdf-editor .bdpdf-dialog .bdpdf-book-static {
+	max-width: 100%;
+	max-height: 68vh;
+}
+
+.bdpdf-editor .bdpdf-dialog .bdpdf-book-static .bdpdf-page,
+.bdpdf-editor .bdpdf-dialog .bdpdf-book-static .bdpdf-page-blank {
+	flex: 0 1 auto;
+	width: auto;
+	height: 68vh;
+}

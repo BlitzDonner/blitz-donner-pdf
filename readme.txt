@@ -4,7 +4,7 @@ Tags: pdf, flipbook, block, media
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.8.0
+Stable tag: 0.8.1
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -42,6 +42,10 @@ Nein. Alle Bibliotheken liegen im Plugin, das PDF kommt aus der eigenen Mediathe
 Alle Seiten werden im Browser vorgerendert. Bis etwa 60 Seiten bleibt die Ladezeit angenehm; darüber steigt sie spürbar.
 
 == Changelog ==
+
+= 0.8.1 =
+* Datei-Zeile: «Ansehen» und «Herunterladen» sind jetzt Textlinks statt Buttons; das PDF-Symbol ist rein dekorativ. Barrierefrei mit sprechenden Link-Namen (Dateibezug) und aria-haspopup für das Popover.
+* Popover: Zurück/Weiter und der Download-Link bleiben immer sichtbar (nur das Buch scrollt); die Blätter-Buttons sind kompakter.
 
 = 0.8.0 =
 * Neu: Darstellung «Datei-Zeile» – der Block als kompakte Download-Zeile mit PDF-Symbol, Titel, Dateigrösse und Erstellungsdatum (pro Block überschreibbar). «Ansehen» öffnet das blätterbare PDF in einem Popover (mobil Vollbild), «Herunterladen» lädt die Datei direkt; beide Knöpfe sind abschaltbar. Mehrere Zeilen untereinander fluchten wie eine Tabelle.
