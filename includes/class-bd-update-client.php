@@ -55,6 +55,8 @@ class BD_Update_Client {
 	const ACCEPTED_KEYS = array(
 		// Inhaber: Blitz & Donner / Stefan (Produktiv) – erzeugt 2026-06-21.
 		'8337dfb76e01b82d' => '8337dfb76e01b82da07e39df711d72f758f33a372932db268bb505b0bdea4860',
+		// Inhaber: Blitz & Donner / David – erzeugt 2026-06-26.
+		'85044a46882e9338' => '85044a46882e93386304cb8329b2407ba7d7f970f727d99d4b546fc79391e2bd',
 	);
 
 	/**
@@ -168,6 +170,73 @@ class BD_Update_Client {
 	}
 
 	/* --------------------------------------------------------------------- */
+	/* Oeffentlicher Status fuer die Backend-Anzeige                         */
+	/* --------------------------------------------------------------------- */
+
+	/**
+	 * Liefert den aktuellen Update-/Lizenz-Status fuer eine Backend-Status-Box.
+	 *
+	 * Gibt KEIN Token zurueck – nur abgeleitete, anzeigbare Statusinformationen.
+	 *
+	 * @param bool $force_remote True erzwingt einen frischen Server-Check am
+	 *                           Request-Cache vorbei (fuer «Token testen»).
+	 *
+	 * @return array {
+	 *     @type string $code     Einer von: const_set | no_token | valid |
+	 *                            forbidden | unreachable | no_update.
+	 *     @type string $version  Installierte Version.
+	 *     @type string $remote_version  Server-Version bei gueltigem Token, sonst ''.
+	 *     @type bool   $by_const Token kommt aus der wp-config-Konstante.
+	 * }
+	 */
+	public function status( $force_remote = false ) {
+		$by_const = ( $this->const_key && defined( $this->const_key ) );
+
+		$result = array(
+			'code'           => 'no_token',
+			'version'        => $this->version,
+			'remote_version' => '',
+			'by_const'       => $by_const,
+		);
+
+		$token = $this->get_token();
+		if ( '' === $token ) {
+			$result['code'] = $by_const ? 'const_set' : 'no_token';
+			return $result;
+		}
+
+		if ( $force_remote ) {
+			// Request-Cache verwerfen, damit ein echter Live-Check stattfindet.
+			$this->remote = null;
+		}
+
+		$remote = $this->fetch_remote();
+
+		if ( is_wp_error( $remote ) ) {
+			switch ( $remote->get_error_code() ) {
+				case 'forbidden':
+					$result['code'] = 'forbidden';
+					break;
+				case 'no_update':
+					// Token gueltig, aber keine neuere Version vorhanden.
+					$result['code'] = 'valid';
+					break;
+				case 'no_token':
+					$result['code'] = $by_const ? 'const_set' : 'no_token';
+					break;
+				default:
+					$result['code'] = 'unreachable';
+			}
+			return $result;
+		}
+
+		// Gueltige Server-Antwort mit Versionsdaten.
+		$result['code']           = 'valid';
+		$result['remote_version'] = isset( $remote['version'] ) ? (string) $remote['version'] : '';
+		return $result;
+	}
+
+	/* --------------------------------------------------------------------- */
 	/* Server-Abfrage                                                        */
 	/* --------------------------------------------------------------------- */
 
@@ -251,6 +320,10 @@ class BD_Update_Client {
 		// Nur anbieten, wenn die Server-Version neuer ist.
 		if ( version_compare( $remote['version'], $this->version, '>' ) ) {
 			$item = array(
+				// 'id' wird von der WP-Plugin-Liste fuer eigene Update-Provider
+				// erwartet (column_auto_updates / filter_payload). Ohne id kann WP
+				// das Item als nicht update-faehig behandeln.
+				'id'           => $this->basename,
 				'slug'         => $this->slug,
 				'plugin'       => $this->basename,
 				'new_version'  => $remote['version'],
@@ -271,6 +344,7 @@ class BD_Update_Client {
 			// Kein Update: aus der Liste entfernen, falls vorhanden.
 			unset( $transient->response[ $this->basename ] );
 			$transient->no_update[ $this->basename ] = (object) array(
+				'id'          => $this->basename,
 				'slug'        => $this->slug,
 				'plugin'      => $this->basename,
 				'new_version' => $this->version,
