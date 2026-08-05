@@ -3,7 +3,7 @@
  * Plugin Name:       Blitz & Donner PDF
  * Plugin URI:        https://plugins.blitzdonner.ch
  * Description:       Gutenberg-Block «BD PDF», der ein PDF aus der Mediathek als blätterbares Buch anzeigt. Seiten werden nach dem Hochladen vorgerendert; PDF.js und StPageFlip sind lokal gebündelt, kein CDN.
- * Version:           0.8.4
+ * Version:           0.9.0
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Author:            Blitz & Donner
@@ -18,7 +18,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'BDPDF_VERSION', '0.8.4' );
+define( 'BDPDF_VERSION', '0.9.0' );
 define( 'BDPDF_PLUGIN_FILE', __FILE__ );
 define( 'BDPDF_TARGET_WIDTH', 2000 ); // Pixelbreite der vorgerenderten Seitenbilder.
 
@@ -64,6 +64,18 @@ function bdpdf_css_var( $wert ) {
 }
 
 require_once __DIR__ . '/includes/rest-pages.php';
+
+// Zentrale Lizenzverwaltung (bdliz): mitgelieferte Kopie, Registrierung auf
+// Dateiebene, damit sie vor plugins_loaded steht. Newest wins ueber alle
+// installierten B&D-Plugins.
+require_once __DIR__ . '/includes/bdliz/bdliz-loader.php';
+bdliz_register(
+	'1.0.0',
+	__DIR__ . '/includes/bdliz/class-bdliz-module.php',
+	'blitz-donner-pdf',
+	'Blitz & Donner PDF',
+	'bdpdf_license_token'
+);
 
 // Update-Client: bezieht Updates vom Self-hosted Server (kein Killswitch,
 // bei fehlendem/gesperrtem Token wird nur das Update verweigert).

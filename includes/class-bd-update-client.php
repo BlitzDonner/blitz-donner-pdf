@@ -151,12 +151,20 @@ class BD_Update_Client {
 	/* --------------------------------------------------------------------- */
 
 	/**
-	 * Token aus wp-config-Konstante ODER Einstellungs-Option lesen.
-	 * Die Konstante hat Vorrang.
+	 * Token dreistufig lesen:
+	 * 1. wp-config-Konstante (Vorrang, technische Setups),
+	 * 2. zentrale Lizenzverwaltung (bdliz-Modul, ein Feld fuer alle Plugins),
+	 * 3. plugin-eigene Einstellungs-Option (Rueckfallebene, Bestand).
 	 */
 	private function get_token() {
 		if ( $this->const_key && defined( $this->const_key ) ) {
 			return (string) constant( $this->const_key );
+		}
+		if ( function_exists( 'bdliz_get_token' ) ) {
+			$token = (string) bdliz_get_token( $this->slug );
+			if ( '' !== $token ) {
+				return $token;
+			}
 		}
 		if ( $this->option_key ) {
 			return (string) get_option( $this->option_key, '' );
@@ -379,8 +387,33 @@ class BD_Update_Client {
 			'requires'      => isset( $remote['requires'] ) ? $remote['requires'] : '',
 			'requires_php'  => isset( $remote['requires_php'] ) ? $remote['requires_php'] : '',
 			'download_link' => $this->server_url . '/bd-updater/download/' . rawurlencode( $this->slug ),
-			'sections'      => isset( $remote['sections'] ) ? $remote['sections'] : array( 'changelog' => '' ),
+			'sections'      => $this->detail_sections( $remote ),
 		);
+	}
+
+	/**
+	 * Reiter im Plugin-Details-Fenster. Der Server liefert seit Version 1.8.0
+	 * die Changelog-Historie der letzten zehn Versionen und den Reiter
+	 * «Weitere Plugins». Antwortet ein aelterer Server, ergaenzt der Client den
+	 * Hinweis-Reiter selbst – so ist er auf jeder Installation da.
+	 *
+	 * @param array<string,mixed> $remote Serverantwort.
+	 * @return array<string,string>
+	 */
+	private function detail_sections( $remote ) {
+		$sections = isset( $remote['sections'] ) && is_array( $remote['sections'] )
+			? $remote['sections']
+			: array( 'changelog' => '' );
+
+		if ( empty( $sections['weitere_plugins'] ) ) {
+			$sections['weitere_plugins'] =
+				'<p><strong>Blitz &amp; Donner</strong> ist eine Schweizer Marken- und Kommunikationsagentur. '
+				. 'Die hier gepflegten WordPress-Plugins entstehen aus der taeglichen Arbeit an Kundenprojekten.</p>'
+				. '<p><a href="https://plugins.blitzdonner.ch" target="_blank" rel="noopener noreferrer">plugins.blitzdonner.ch</a> '
+				. '– Uebersicht, Anleitungen und Lizenzen.</p>';
+		}
+
+		return $sections;
 	}
 
 	/* --------------------------------------------------------------------- */

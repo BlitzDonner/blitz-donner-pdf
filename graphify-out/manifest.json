@@ -1,0 +1,77 @@
+{
+  "blitz-donner-pdf.php": {
+    "mtime": 1784149172.5160906,
+    "ast_hash": "e7569137d435406867c64a33ab72e84c",
+    "semantic_hash": "e7569137d435406867c64a33ab72e84c"
+  },
+  "blocks/flipbook/block.json": {
+    "mtime": 1784149172.548629,
+    "ast_hash": "1bbc4b277421ddd72d0da57dfe0dd767",
+    "semantic_hash": "1bbc4b277421ddd72d0da57dfe0dd767"
+  },
+  "blocks/flipbook/book-scaffold.php": {
+    "mtime": 1784133293.656043,
+    "ast_hash": "6c767edc35a63521914c58ea572dda16",
+    "semantic_hash": "6c767edc35a63521914c58ea572dda16"
+  },
+  "blocks/flipbook/dynamic-loader.js": {
+    "mtime": 1784040690.7568955,
+    "ast_hash": "c5e029514d0875b877d7adf475650bc1",
+    "semantic_hash": "c5e029514d0875b877d7adf475650bc1"
+  },
+  "blocks/flipbook/editor.asset.php": {
+    "mtime": 1784149172.5117683,
+    "ast_hash": "b20ce137a1f25d83c90ad92e935fd6a0",
+    "semantic_hash": "b20ce137a1f25d83c90ad92e935fd6a0"
+  },
+  "blocks/flipbook/editor.js": {
+    "mtime": 1784146401.762914,
+    "ast_hash": "1e85e866ebc5e637cb970fcb3a652389",
+    "semantic_hash": "1e85e866ebc5e637cb970fcb3a652389"
+  },
+  "blocks/flipbook/flipbook-core.js": {
+    "mtime": 1784137324.6301715,
+    "ast_hash": "be27964c2b3e7273098c751801a8da52",
+    "semantic_hash": "be27964c2b3e7273098c751801a8da52"
+  },
+  "blocks/flipbook/page-flip.browser.js": {
+    "mtime": 1783241677.7482553,
+    "ast_hash": "d437997444137c3d1ee879f2bd321b44",
+    "semantic_hash": "d437997444137c3d1ee879f2bd321b44"
+  },
+  "blocks/flipbook/pdf.min.mjs": {
+    "mtime": 1783241677.7457478,
+    "ast_hash": "99020dc08927965fcbdf9c97b231a526",
+    "semantic_hash": "99020dc08927965fcbdf9c97b231a526"
+  },
+  "blocks/flipbook/pdf.worker.min.mjs": {
+    "mtime": 1783241677.7476084,
+    "ast_hash": "f7ae3fe3cc9c326175ba6815547a71fa",
+    "semantic_hash": "f7ae3fe3cc9c326175ba6815547a71fa"
+  },
+  "blocks/flipbook/render.php": {
+    "mtime": 1784146364.1709056,
+    "ast_hash": "ac1be6f62727fef6998df65fed957196",
+    "semantic_hash": "ac1be6f62727fef6998df65fed957196"
+  },
+  "blocks/flipbook/view.mjs": {
+    "mtime": 1784145005.4332972,
+    "ast_hash": "aa2c6f86fb5a29c96b613c73903fe25f",
+    "semantic_hash": "aa2c6f86fb5a29c96b613c73903fe25f"
+  },
+  "includes/class-bd-update-client.php": {
+    "mtime": 1784899546.0935004,
+    "ast_hash": "9a4ff050a7d472143c76b5fc11e0d85c",
+    "semantic_hash": "9a4ff050a7d472143c76b5fc11e0d85c"
+  },
+  "includes/rest-pages.php": {
+    "mtime": 1784133432.371254,
+    "ast_hash": "ef362398b737fce5161319e7c5149d26",
+    "semantic_hash": "ef362398b737fce5161319e7c5149d26"
+  },
+  "tools/release.sh": {
+    "mtime": 1784044916.9481087,
+    "ast_hash": "6da5accc6bd7aac9057a941689eca7e9",
+    "semantic_hash": "6da5accc6bd7aac9057a941689eca7e9"
+  }
+}
