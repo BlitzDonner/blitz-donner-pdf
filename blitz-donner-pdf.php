@@ -3,7 +3,7 @@
  * Plugin Name:       Blitz & Donner PDF
  * Plugin URI:        https://plugins.blitzdonner.ch
  * Description:       Gutenberg-Block «BD PDF», der ein PDF aus der Mediathek als blätterbares Buch anzeigt. Seiten werden nach dem Hochladen vorgerendert; PDF.js und StPageFlip sind lokal gebündelt, kein CDN.
- * Version:           0.9.0
+ * Version:           0.10.0
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Author:            Blitz & Donner
@@ -18,7 +18,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'BDPDF_VERSION', '0.9.0' );
+define( 'BDPDF_VERSION', '0.10.0' );
 define( 'BDPDF_PLUGIN_FILE', __FILE__ );
 define( 'BDPDF_TARGET_WIDTH', 2000 ); // Pixelbreite der vorgerenderten Seitenbilder.
 
@@ -70,11 +70,21 @@ require_once __DIR__ . '/includes/rest-pages.php';
 // installierten B&D-Plugins.
 require_once __DIR__ . '/includes/bdliz/bdliz-loader.php';
 bdliz_register(
-	'1.0.0',
+	'1.1.0',
 	__DIR__ . '/includes/bdliz/class-bdliz-module.php',
 	'blitz-donner-pdf',
 	'Blitz & Donner PDF',
-	'bdpdf_license_token'
+	'bdpdf_license_token',
+	'BDPDF_LICENSE_TOKEN'
+);
+
+// Update-Client-Kopie registrieren: Der Lader stellt siteweit die NEUESTE
+// mitgelieferte Kopie aller B&D-Plugins scharf (Befund 18.08.2026 – eine
+// veraltete Kopie eines anderen Plugins kann Updates nicht mehr blockieren).
+require_once __DIR__ . '/includes/bd-update-client-loader.php';
+bd_update_client_register(
+	'3.0.0',
+	__DIR__ . '/includes/class-bd-update-client.php'
 );
 
 // Update-Client: bezieht Updates vom Self-hosted Server (kein Killswitch,
