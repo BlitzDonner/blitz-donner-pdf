@@ -58,6 +58,13 @@ $bdpdf_show_cover = 'spread' === $bdpdf_layout
 	? ( $bdpdf_cover_singl ? '1' : '0' )
 	: ( empty( $attributes['showCover'] ) ? '0' : '1' );
 
+// Blätter-Art (#A1M): auto | softcover | hardcover | sheet. «auto» löst das
+// Frontend nach Seitenzahl auf (2 Seiten → Blatt umdrehen, sonst Softcover).
+$bdpdf_flip_style = isset( $attributes['flipStyle'] ) ? sanitize_key( (string) $attributes['flipStyle'] ) : 'auto';
+if ( ! in_array( $bdpdf_flip_style, array( 'auto', 'softcover', 'hardcover', 'sheet' ), true ) ) {
+	$bdpdf_flip_style = 'auto';
+}
+
 // Darstellungsmodus wie bei Blitz & Donner Forms: theme | auto | light | dark.
 $bdpdf_appearance = isset( $attributes['appearanceMode'] ) ? sanitize_key( (string) $attributes['appearanceMode'] ) : 'theme';
 if ( ! in_array( $bdpdf_appearance, array( 'theme', 'auto', 'light', 'dark' ), true ) ) {
@@ -123,6 +130,7 @@ $bdpdf_wrapper = str_replace( array( 'box-shadow:', 'box-shadow :' ), '--bdpdf-b
 	data-tail-single="<?php echo esc_attr( $bdpdf_tail_singl ); ?>"
 	<?php endif; ?>
 	data-show-cover="<?php echo esc_attr( $bdpdf_show_cover ); ?>"
+	data-flip-style="<?php echo esc_attr( $bdpdf_flip_style ); ?>"
 	tabindex="0"
 	role="region"
 	aria-label="<?php echo esc_attr( $bdpdf_label ); ?>">

@@ -30,6 +30,10 @@
 			"type": "boolean",
 			"default": true
 		},
+		"flipStyle": {
+			"type": "string",
+			"default": "auto"
+		},
 		"appearanceMode": {
 			"type": "string",
 			"default": "theme"

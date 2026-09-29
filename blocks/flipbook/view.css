@@ -465,3 +465,80 @@
 	opacity: 0.4;
 	cursor: default;
 }
+
+/* ============================================================== *
+ * Modus «Blatt umdrehen» (#A1M): Vorder- und Rückseite eines Blatts.
+ * Die Drehung selbst (anheben, um die Mittelachse drehen, ablegen)
+ * rechnet flipbook-core.js; hier nur Bühne und Flächen.
+ * ============================================================== */
+.wp-block-bdpdf-flipbook .bdpdf-sheet {
+	position: relative;
+	width: 100%;
+	margin-inline: auto;
+	perspective: 3000px;
+}
+
+.wp-block-bdpdf-flipbook .bdpdf-sheet-card {
+	position: absolute;
+	inset: 0;
+	transform-style: preserve-3d;
+	cursor: pointer;
+}
+
+.wp-block-bdpdf-flipbook .bdpdf-sheet-face {
+	position: absolute;
+	inset: 0;
+	backface-visibility: hidden;
+	-webkit-backface-visibility: hidden;
+}
+
+.wp-block-bdpdf-flipbook .bdpdf-sheet-back {
+	transform: rotateY(180deg);
+}
+
+/* ============================================================== *
+ * Deko beruhigt (#A1M): Seitenschatten im Popover leiser. Platz für
+ * eine Schattenfuge am Bund: --bdpdf-fuge nimmt ein Hintergrundbild
+ * (z.B. linear-gradient) auf, das über dem Buch liegt. Standard: keine.
+ * ============================================================== */
+.wp-block-bdpdf-flipbook .bdpdf-dialog .bdpdf-page {
+	box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.35) !important;
+}
+
+.wp-block-bdpdf-flipbook .bdpdf-book {
+	position: relative;
+}
+
+.wp-block-bdpdf-flipbook .bdpdf-book::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 1;
+	background: var(--bdpdf-fuge, none);
+}
+
+/* ============================================================== *
+ * Overlay des Themes (Werkschau/ATLAS-Werke, #A1M): enthält es ein PDF,
+ * wird das Overlay rund 90 % der Fensterbreite breit, der Inhalt bleibt
+ * so breit wie bisher. Der Scrollbalken sitzt damit am Overlay-Rand
+ * statt direkt neben dem PDF.
+ * ============================================================== */
+/* Inhaltsbreiten wie im Theme (91vw, ab 768px 80vw, ab 1024px 70vw, max. 1200px). */
+@media (min-width: 768px) {
+	.popup.open .popup-container > .popup-content:has(.wp-block-bdpdf-flipbook) {
+		width: 90vw;
+		max-width: 90vw;
+	}
+
+	.popup.open .popup-container > .popup-content:has(.wp-block-bdpdf-flipbook) > .popup-info {
+		width: min(80vw, 1200px);
+		margin-inline: auto;
+	}
+}
+
+@media (min-width: 1024px) {
+	.popup.open .popup-container > .popup-content:has(.wp-block-bdpdf-flipbook) > .popup-info {
+		width: min(70vw, 1200px);
+	}
+}

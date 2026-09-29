@@ -653,7 +653,32 @@
 									setAttributes( { showCover: value } );
 								},
 							} )
-							: null
+							: null,
+						// Blätter-Art (#A1M). «Automatisch» nennt den Vorschlag
+						// aus der Seitenzahl: 2 Seiten → Blatt umdrehen.
+						el( SelectControl, {
+							__nextHasNoMarginBottom: true,
+							__next40pxDefaultSize: true,
+							label: __( 'Blättern', 'blitz-donner-pdf' ),
+							value: attributes.flipStyle || 'auto',
+							options: [
+								{
+									label: pages && pages.length
+										? ( 2 === pages.length
+											? __( 'Automatisch (Vorschlag: Blatt umdrehen)', 'blitz-donner-pdf' )
+											: __( 'Automatisch (Vorschlag: Softcover)', 'blitz-donner-pdf' ) )
+										: __( 'Automatisch', 'blitz-donner-pdf' ),
+									value: 'auto',
+								},
+								{ label: __( 'Softcover (alle Seiten blättern)', 'blitz-donner-pdf' ), value: 'softcover' },
+								{ label: __( 'Hardcover (Umschlag klappt steif um)', 'blitz-donner-pdf' ), value: 'hardcover' },
+								{ label: __( 'Blatt umdrehen (Vorder- und Rückseite)', 'blitz-donner-pdf' ), value: 'sheet' },
+							],
+							help: __( 'Automatisch: ein PDF mit genau zwei Seiten (Flyer, Karte) wird als Blatt umgedreht, alles andere blättert als Softcover. Die Vorschau im Editor bleibt statisch.', 'blitz-donner-pdf' ),
+							onChange: function ( value ) {
+								setAttributes( { flipStyle: value } );
+							},
+						} )
 					)
 				),
 				// Farbmodus gehört in den Stil-Tab (Pinsel) – gleiche Logik

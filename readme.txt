@@ -4,7 +4,7 @@ Tags: pdf, flipbook, block, media
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.8.4
+Stable tag: 0.11.0
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -42,6 +42,12 @@ Nein. Alle Bibliotheken liegen im Plugin, das PDF kommt aus der eigenen Mediathe
 Alle Seiten werden im Browser vorgerendert. Bis etwa 60 Seiten bleibt die Ladezeit angenehm; darüber steigt sie spürbar.
 
 == Changelog ==
+
+= 0.11.0 =
+* Neue Einstellung «Blättern»: Softcover (Standard, alle Seiten blättern weich, auch der Umschlag), Hardcover (Umschlag vorn und hinten klappt steif um, Innenseiten blättern) und neu «Blatt umdrehen» für vorne und hinten bedruckte Einzelblätter wie Flyer und Karten: Das Blatt hebt sich an, dreht sich um die Mittelachse und legt sich wieder ab.
+* «Automatisch» (Standard) wählt für PDFs mit genau zwei Seiten «Blatt umdrehen», sonst Softcover.
+* Overlay des Themes (z.B. Werkschau) wird mit einem PDF rund 90 % breit, der Inhalt bleibt gleich breit.
+* Ruhigere Schatten beim Blättern und im Popover; Variable --bdpdf-fuge als Platz für eine Schattenfuge am Bund.
 
 = 0.8.4 =
 * «Block-Abstand» wirkt wieder im Popover: Er steuert dort den Abstand zwischen PDF und Navigation (war in der Lightbox-Umgestaltung fix geworden). Im Buch-Modus unverändert.

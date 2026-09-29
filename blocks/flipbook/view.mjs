@@ -151,6 +151,7 @@ async function legacyRender( root ) {
 			pageWidth: pageW,
 			pageHeight: pageH,
 			showCover: '1' === root.dataset.showCover,
+			flipStyle: root.dataset.flipStyle || 'auto',
 		} );
 	} catch ( err ) {
 		loadText.textContent = 'Das PDF konnte nicht geladen werden.';
@@ -177,6 +178,7 @@ function bootBook( root, maxHeight ) {
 			pageWidth: parseInt( root.dataset.pageW, 10 ),
 			pageHeight: parseInt( root.dataset.pageH, 10 ),
 			showCover: '1' === root.dataset.showCover,
+			flipStyle: root.dataset.flipStyle || 'auto',
 			maxHeight: maxHeight || 0,
 		} );
 		setupHiRes( root, inst, pages.length, parseInt( root.dataset.pageW, 10 ) );
