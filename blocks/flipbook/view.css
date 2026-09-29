@@ -612,3 +612,8 @@
 .wp-block-bdpdf-flipbook:fullscreen .bdpdf-book {
 	width: 100%;
 }
+
+/* Begrenztes Buch mittig statt links (#A1M). */
+.wp-block-bdpdf-flipbook .bdpdf-book .stf__parent {
+	margin-inline: auto;
+}
