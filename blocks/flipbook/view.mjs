@@ -208,22 +208,29 @@ function verfuegbareHoehe( root, cap ) {
 	const fb      = root.querySelector( '.bdpdf-fallback' );
 	const reserve = Math.max( nav ? nav.offsetHeight : 0, 48 ) + ( fb ? fb.offsetHeight : 0 ) + 40;
 	let h = window.innerHeight - reserve;
-	if ( document.fullscreenElement !== root ) {
-		let el = root.parentElement;
-		while ( el && el !== document.body ) {
-			const oy = getComputedStyle( el ).overflowY;
-			if ( ( 'auto' === oy || 'scroll' === oy ) && el.clientHeight > 0 ) {
-				const oben = root.getBoundingClientRect().top - el.getBoundingClientRect().top;
-				h = Math.min( h, el.clientHeight - Math.max( oben, 0 ) - reserve );
-				break;
-			}
-			el = el.parentElement;
-		}
+	const el = document.fullscreenElement === root ? null : scrollBehaelter( root );
+	if ( el ) {
+		// Abstand des Blocks vom Inhaltsanfang des Containers (z.B. Titel).
+		const oben = root.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop;
+		h = Math.min( h, el.clientHeight - Math.max( oben, 0 ) - reserve );
 	}
 	if ( cap > 0 ) {
 		h = Math.min( h, cap );
 	}
 	return Math.max( 240, Math.round( h ) );
+}
+
+/** Nächster scrollende Vorfahre (z.B. Lightbox-Inhalt), sonst null. */
+function scrollBehaelter( root ) {
+	let el = root.parentElement;
+	while ( el && el !== document.body ) {
+		const oy = getComputedStyle( el ).overflowY;
+		if ( ( 'auto' === oy || 'scroll' === oy ) && el.clientHeight > 0 ) {
+			return el;
+		}
+		el = el.parentElement;
+	}
+	return null;
 }
 
 /**
@@ -268,6 +275,16 @@ function zeigeBuch( root, pages, basis, hires ) {
 		timer = setTimeout( () => bauen( false ), 250 );
 	} );
 	document.addEventListener( 'fullscreenchange', () => setTimeout( () => bauen( true ), 100 ) );
+	// Lightboxen öffnen animiert: Grösse des Containers beobachten, damit
+	// das Buch nach dem Einblenden die endgültige Höhe bekommt.
+	const behaelter = scrollBehaelter( root );
+	if ( behaelter && window.ResizeObserver ) {
+		new ResizeObserver( () => {
+			clearTimeout( timer );
+			timer = setTimeout( () => bauen( false ), 250 );
+		} ).observe( behaelter );
+	}
+	setTimeout( () => bauen( false ), 800 );
 
 	// In einer Lightbox (Theme-Popup oder Dialog) den Fokus in den Viewer
 	// legen, damit Pfeiltasten sofort blättern. Esc bleibt beim Theme.
