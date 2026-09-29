@@ -284,7 +284,12 @@ function zeigeBuch( root, pages, basis, hires ) {
 			timer = setTimeout( () => bauen( false ), 250 );
 		} ).observe( behaelter );
 	}
-	setTimeout( () => bauen( false ), 800 );
+	// Themes verschieben den Block beim Öffnen einer Lightbox teils erst
+	// nachträglich in den endgültigen Container: ein paar Nachmessungen,
+	// dazu beim ersten Zeigen/Fokus auf den Viewer.
+	[ 300, 800, 1600, 3200 ].forEach( ( ms ) => setTimeout( () => bauen( false ), ms ) );
+	root.addEventListener( 'pointerenter', () => bauen( false ) );
+	root.addEventListener( 'focusin', () => bauen( false ) );
 
 	// In einer Lightbox (Theme-Popup oder Dialog) den Fokus in den Viewer
 	// legen, damit Pfeiltasten sofort blättern. Esc bleibt beim Theme.
