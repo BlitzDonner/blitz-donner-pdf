@@ -287,7 +287,22 @@ function zeigeBuch( root, pages, basis, hires ) {
 	// Themes verschieben den Block beim Öffnen einer Lightbox teils erst
 	// nachträglich in den endgültigen Container: ein paar Nachmessungen,
 	// dazu beim ersten Zeigen/Fokus auf den Viewer.
-	[ 300, 800, 1600, 3200 ].forEach( ( ms ) => setTimeout( () => bauen( false ), ms ) );
+	let runden = 0;
+	const nachmessen = setInterval( () => {
+		bauen( false );
+		if ( ++runden >= 20 ) {
+			clearInterval( nachmessen );
+		}
+	}, 750 );
+	// Wird der Block sichtbar (etwa nach dem Umhängen in die Lightbox),
+	// Platz neu messen.
+	if ( window.IntersectionObserver ) {
+		new IntersectionObserver( ( eintraege ) => {
+			if ( eintraege.some( ( e ) => e.isIntersecting ) ) {
+				bauen( false );
+			}
+		} ).observe( root );
+	}
 	root.addEventListener( 'pointerenter', () => bauen( false ) );
 	root.addEventListener( 'focusin', () => bauen( false ) );
 
