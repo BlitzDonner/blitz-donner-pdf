@@ -131,26 +131,57 @@ async function legacyRender( root ) {
 		const images = [];
 		let pageW = 0;
 		let pageH = 0;
+
+		// Doppelseiten (data-layout="spread", Attribut pageLayout, #A1M): jede
+		// breite PDF-Seite am Bund in zwei Buchseiten teilen. Schmale erste/
+		// letzte Seiten (< 75 % der Maximalbreite) bleiben ganz, wie beim
+		// Vorrendern im Editor.
+		const spread = 'spread' === root.dataset.layout;
+		const widths = [];
+		if ( spread ) {
+			for ( let i = 1; i <= pdf.numPages; i++ ) {
+				widths.push( ( await pdf.getPage( i ) ).getViewport( { scale: 1 } ).width );
+			}
+		}
+		const maxW        = spread ? Math.max.apply( null, widths ) : 0;
+		const singles     = widths.map( ( w ) => w < 0.75 * maxW );
+		const coverSingle = spread && !! singles[ 0 ];
+
 		for ( let i = 1; i <= pdf.numPages; i++ ) {
 			const page     = await pdf.getPage( i );
 			const viewport = page.getViewport( { scale } );
-			if ( 1 === i ) {
-				pageW = viewport.width;
-				pageH = viewport.height;
-			}
 			const canvas  = document.createElement( 'canvas' );
 			canvas.width  = viewport.width;
 			canvas.height = viewport.height;
 			// intent 'print' rendert ohne requestAnimationFrame – läuft auch im Hintergrund-Tab.
 			await page.render( { canvasContext: canvas.getContext( '2d' ), viewport, intent: 'print' } ).promise;
-			images.push( canvas.toDataURL( 'image/jpeg', 0.9 ) );
+			const parts = [ canvas ];
+			if ( spread && ! singles[ i - 1 ] ) {
+				const halfW = Math.floor( canvas.width / 2 );
+				parts.length = 0;
+				for ( const [ x, w ] of [ [ 0, halfW ], [ -halfW, canvas.width - halfW ] ] ) {
+					const teil  = document.createElement( 'canvas' );
+					teil.width  = w;
+					teil.height = canvas.height;
+					teil.getContext( '2d' ).drawImage( canvas, x, 0 );
+					parts.push( teil );
+				}
+			}
+			for ( const part of parts ) {
+				if ( ! pageW ) {
+					pageW = part.width;
+					pageH = part.height;
+				}
+				images.push( part.toDataURL( 'image/jpeg', 0.9 ) );
+			}
 			progress.value = i;
 		}
 
 		window.bdpdfFlipbook.init( root, images, {
 			pageWidth: pageW,
 			pageHeight: pageH,
-			showCover: '1' === root.dataset.showCover,
+			// Bei Doppelseiten bestimmt das PDF, ob der Umschlag einzeln steht.
+			showCover: spread ? coverSingle : '1' === root.dataset.showCover,
 			flipStyle: root.dataset.flipStyle || 'auto',
 		} );
 	} catch ( err ) {

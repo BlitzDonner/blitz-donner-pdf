@@ -47,6 +47,7 @@ Alle Seiten werden im Browser vorgerendert. Bis etwa 60 Seiten bleibt die Ladeze
 * Neue Einstellung «Blättern»: Softcover (Standard, alle Seiten blättern weich, auch der Umschlag), Hardcover (Umschlag vorn und hinten klappt steif um, Innenseiten blättern) und neu «Blatt umdrehen» für vorne und hinten bedruckte Einzelblätter wie Flyer und Karten: Das Blatt hebt sich an, dreht sich um die Mittelachse und legt sich wieder ab.
 * «Automatisch» (Standard) wählt für PDFs mit genau zwei Seiten «Blatt umdrehen», sonst Softcover.
 * Overlay des Themes (z.B. Werkschau) wird mit einem PDF rund 90 % breit, der Inhalt bleibt gleich breit.
+* Doppelseiten auch für PDFs über eine Adresse (z.B. ATLAS-Werke): Attribut pageLayout = spread teilt die Seiten beim Rendern im Browser am Bund, schmale Umschläge bleiben einzeln. Siehe README, «Einbindung aus anderen Plugins».
 * Ruhigere Schatten beim Blättern und im Popover; Variable --bdpdf-fuge als Platz für eine Schattenfuge am Bund.
 
 = 0.8.4 =

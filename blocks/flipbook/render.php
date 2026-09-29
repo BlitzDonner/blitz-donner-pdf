@@ -52,6 +52,12 @@ if ( $bdpdf_is_demo ) {
 	}
 }
 
+// PDFs ohne vorgerenderte Seiten (externe Adresse, z.B. aus ATLAS-Werke): Das
+// Seitenlayout kommt aus dem Attribut pageLayout (single | spread). Bei spread
+// teilt view.mjs die Seiten beim Rendern im Browser am Bund und erkennt schmale
+// Umschlagseiten selbst (#A1M).
+$bdpdf_legacy_layout = ! $bdpdf_pages_json && isset( $attributes['pageLayout'] ) && 'spread' === $attributes['pageLayout'] ? 'spread' : 'single';
+
 // Im Doppelseiten-Modus bestimmt das PDF, ob der Umschlag einzeln steht –
 // nur so stimmen die Seitenpaare wieder mit den Original-Doppelseiten überein.
 $bdpdf_show_cover = 'spread' === $bdpdf_layout
@@ -128,6 +134,8 @@ $bdpdf_wrapper = str_replace( array( 'box-shadow:', 'box-shadow :' ), '--bdpdf-b
 	data-layout="<?php echo esc_attr( $bdpdf_layout ); ?>"
 	data-cover-single="<?php echo esc_attr( $bdpdf_cover_singl ); ?>"
 	data-tail-single="<?php echo esc_attr( $bdpdf_tail_singl ); ?>"
+	<?php else : ?>
+	data-layout="<?php echo esc_attr( $bdpdf_legacy_layout ); ?>"
 	<?php endif; ?>
 	data-show-cover="<?php echo esc_attr( $bdpdf_show_cover ); ?>"
 	data-flip-style="<?php echo esc_attr( $bdpdf_flip_style ); ?>"

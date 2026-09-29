@@ -41,6 +41,45 @@ Attribut `displayMode` (`book` | `file`), als Blockvarianten im Inserter. Die Ze
 ## Seitenlayout (seit 0.5.0)
 Einstellung im Zahnrad-Tab: **Einzelseiten** (Standard, jede PDF-Seite = eine Buchseite) oder **Doppelseiten** (jede PDF-Seite enthält eine Druck-Doppelseite und wird beim Vorab-Rendern am Bund geteilt). Schmale erste/letzte Seiten (< 75 % der Maximalbreite) gelten automatisch als einzelner Umschlag; die Buchdeckel-Logik folgt im Doppelseiten-Modus dieser Erkennung statt dem Schalter. Das Hi-Res-Nachrendern im Frontend rechnet Buchseiten auf PDF-Seite und Hälfte zurück (bookToPdf in view.mjs).
 
+## Einbindung aus anderen Plugins (seit 0.11.0)
+
+Andere Plugins rendern den Block serverseitig mit `render_block()`. Für PDFs, die nicht
+aus der Mediathek kommen (nur `pdfUrl`, keine `pdfId`, z.B. aus ATLAS-Werke), gelten
+diese Attribute:
+
+| Attribut | Werte | Wirkung |
+|---|---|---|
+| `pdfUrl` | Adresse | PDF, wird im Browser gerendert |
+| `pdfTitle` | Text | Beschriftung / aria-label |
+| `displayMode` | `book` \| `file` | Buch oder Datei-Zeile |
+| `pageLayout` | `single` (Standard) \| `spread` | `spread`: jede PDF-Seite enthält eine Druck-Doppelseite und wird am Bund geteilt; schmale erste/letzte Seiten (unter 75 % der breitesten) bleiben als einzelner Umschlag |
+| `flipStyle` | `auto` (Standard) \| `softcover` \| `hardcover` \| `sheet` | Blätter-Art; `auto` = 2 Buchseiten → Blatt umdrehen, sonst Softcover |
+
+Bei Mediathek-PDFs mit vorgerenderten Seiten gilt das beim Rendern gespeicherte Layout,
+`pageLayout` wirkt dort über den Editor.
+
+**ATLAS-Werke** setzt die Werte aus dem Werk-Feld `druckformat` (`nebeneinander`):
+
+```php
+// Werk-Meta _bdaw_druckformat (JSON: format, ausrichtung, nebeneinander, seiten).
+$druckformat = json_decode( (string) get_post_meta( $post->ID, Bdaw_Werke_Post_Type::META_DRUCKFORMAT, true ), true );
+$doppelseiten = is_array( $druckformat ) && 2 === (int) ( $druckformat['nebeneinander'] ?? 0 );
+
+render_block( array(
+	'blockName' => 'bdpdf/flipbook',
+	'attrs'     => array(
+		'pdfUrl'      => $quelle,
+		'pdfTitle'    => get_the_title( $post ),
+		'displayMode' => 'book',
+		'pageLayout'  => $doppelseiten ? 'spread' : 'single',
+	),
+	'innerBlocks' => array(), 'innerHTML' => '', 'innerContent' => array(),
+) );
+```
+
+`flipStyle` weglassen (`auto`) oder fest setzen. Dreiteilige Faltblätter
+(`nebeneinander` 3) werden nicht geteilt und bleiben Einzelseiten.
+
 ## Anforderungen
 WordPress 6.5+ (wegen `viewScriptModule`), PHP 7.4+.
 ## Bekannte Grenzen
