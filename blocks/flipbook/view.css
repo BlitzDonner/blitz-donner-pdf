@@ -527,18 +527,23 @@
 /* Inhaltsbreiten wie im Theme (91vw, ab 768px 80vw, ab 1024px 70vw, max. 1200px). */
 @media (min-width: 768px) {
 	.popup.open .popup-container > .popup-content:has(.wp-block-bdpdf-flipbook) {
-		width: 90vw;
+		/* !important: das Theme setzt beim Öffnen inline width: auto. */
+		width: 90vw !important;
 		max-width: 90vw;
 	}
 
 	.popup.open .popup-container > .popup-content:has(.wp-block-bdpdf-flipbook) > .popup-info {
-		width: min(80vw, 1200px);
+		/* !important: das Theme setzt width/flex-basis/max-width der Info mit !important. */
+		width: min(80vw, 1200px) !important;
+		max-width: min(80vw, 1200px) !important;
+		flex-basis: auto !important;
 		margin-inline: auto;
 	}
 }
 
 @media (min-width: 1024px) {
 	.popup.open .popup-container > .popup-content:has(.wp-block-bdpdf-flipbook) > .popup-info {
-		width: min(70vw, 1200px);
+		width: min(70vw, 1200px) !important;
+		max-width: min(70vw, 1200px) !important;
 	}
 }
