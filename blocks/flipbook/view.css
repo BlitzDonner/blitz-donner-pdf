@@ -529,7 +529,7 @@
 	.popup.open .popup-container > .popup-content:has(.wp-block-bdpdf-flipbook) {
 		/* !important: das Theme setzt beim Öffnen inline width: auto. */
 		width: 90vw !important;
-		max-width: 90vw;
+		max-width: 90vw !important;
 		left: 5vw !important; /* zentriert, das Theme rechnet die Lage aus seiner eigenen Breite */
 	}
 
