@@ -4,7 +4,7 @@ Tags: pdf, flipbook, block, media
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.11.0
+Stable tag: 0.11.1
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -42,6 +42,11 @@ Nein. Alle Bibliotheken liegen im Plugin, das PDF kommt aus der eigenen Mediathe
 Alle Seiten werden im Browser vorgerendert. Bis etwa 60 Seiten bleibt die Ladezeit angenehm; darüber steigt sie spürbar.
 
 == Changelog ==
+
+= 0.11.1 =
+* Das Buch passt sich in den verfügbaren Platz ein (Fenster, Lightbox, Vollbild): Seite bzw. Doppelseite ganz sichtbar, Leiste immer im Bild. Beim Ändern der Fenstergrösse baut es sich auf derselben Seite neu auf.
+* Ruhige Leiste: ‹ Seite x / y › und Vollbild-Knopf.
+* Blättern auch mit Bild auf/ab; in einer Lightbox liegt der Fokus beim Öffnen im Viewer.
 
 = 0.11.0 =
 * Neue Einstellung «Blättern»: Softcover (Standard, alle Seiten blättern weich, auch der Umschlag), Hardcover (Umschlag vorn und hinten klappt steif um, Innenseiten blättern) und neu «Blatt umdrehen» für vorne und hinten bedruckte Einzelblätter wie Flyer und Karten: Das Blatt hebt sich an, dreht sich um die Mittelachse und legt sich wieder ab.

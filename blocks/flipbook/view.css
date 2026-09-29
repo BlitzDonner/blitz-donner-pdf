@@ -548,3 +548,67 @@
 		max-width: min(70vw, 1200px) !important;
 	}
 }
+
+/* ============================================================== *
+ * Ruhige Leiste (#A1M): ‹ Seite x / y › plus Vollbild. Kompakte
+ * Knöpfe, damit die Leiste auch bei 400 px auf einer Zeile bleibt.
+ * Farben weiter aus dem Theme bzw. Darstellungsmodus.
+ * ============================================================== */
+.wp-block-bdpdf-flipbook .bdpdf-nav {
+	flex-wrap: nowrap;
+	gap: 0.75rem;
+}
+
+.wp-block-bdpdf-flipbook .bdpdf-nav .bdpdf-prev,
+.wp-block-bdpdf-flipbook .bdpdf-nav .bdpdf-next {
+	min-width: 2.75rem;
+	padding: 0.35em 0.9em !important;
+	font-size: 1.25rem !important;
+	line-height: 1.1 !important;
+	white-space: nowrap;
+	writing-mode: horizontal-tb;
+}
+
+.wp-block-bdpdf-flipbook .bdpdf-pageinfo {
+	min-width: 0;
+	white-space: nowrap;
+}
+
+.wp-block-bdpdf-flipbook .bdpdf-fullscreen {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2.25rem;
+	height: 2.25rem;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: transparent;
+	color: inherit;
+	opacity: 0.75;
+	cursor: pointer;
+}
+
+.wp-block-bdpdf-flipbook .bdpdf-fullscreen:hover,
+.wp-block-bdpdf-flipbook .bdpdf-fullscreen:focus-visible {
+	opacity: 1;
+}
+
+.wp-block-bdpdf-flipbook .bdpdf-fullscreen[hidden],
+.wp-block-bdpdf-flipbook .bdpdf-dialog .bdpdf-fullscreen {
+	display: none;
+}
+
+/* Vollbild: Buch mittig auf ruhigem, dunklem Grund, Leiste darunter. */
+.wp-block-bdpdf-flipbook:fullscreen {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	padding: 1rem;
+	background: #141414;
+	color: #fff;
+}
+
+.wp-block-bdpdf-flipbook:fullscreen .bdpdf-book {
+	width: 100%;
+}

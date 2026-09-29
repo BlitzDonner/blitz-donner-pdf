@@ -132,18 +132,11 @@
 		pageFlip.on( 'changeOrientation', updateInfo );
 		updateInfo();
 
-		btnPrev.addEventListener( 'click', () => pageFlip.flipPrev() );
-		btnNext.addEventListener( 'click', () => pageFlip.flipNext() );
-		root.addEventListener( 'keydown', ( e ) => {
-			if ( 'ArrowLeft' === e.key ) {
-				e.preventDefault();
-				pageFlip.flipPrev();
-			}
-			if ( 'ArrowRight' === e.key ) {
-				e.preventDefault();
-				pageFlip.flipNext();
-			}
-		} );
+		if ( opts.startPage > 0 && opts.startPage < pageEls.length ) {
+			pageFlip.turnToPage( opts.startPage );
+			updateInfo();
+		}
+		bindeSteuerung( root );
 
 		// Grösse neu berechnen, wenn sich die Containerbreite ohne Fenster-Resize
 		// ändert (z.B. Padding/Breite aus dem Stil-Tab im Editor) – sonst
@@ -164,7 +157,7 @@
 			resizeObserver.observe( bookEl );
 		}
 
-		return {
+		root.__bdpdfInst = {
 			pageFlip,
 			resizeObserver,
 			setPageSrc: ( i, src ) => {
@@ -174,6 +167,7 @@
 				}
 			},
 		};
+		return root.__bdpdfInst;
 	}
 
 	/**
@@ -197,7 +191,7 @@
 		const srcs     = pages.slice();
 		const count    = srcs.length;
 		const listener = [];
-		let idx        = 0;
+		let idx        = opts.startPage > 0 && opts.startPage < pages.length ? opts.startPage : 0;
 		let laeuft     = false;
 
 		bookEl.innerHTML = '';
@@ -221,7 +215,7 @@
 		};
 		const vorne  = flaeche( 'front' );
 		const hinten = flaeche( 'back' );
-		vorne.src    = srcs[ 0 ];
+		vorne.src    = srcs[ idx ];
 		buehne.appendChild( karte );
 		bookEl.appendChild( buehne );
 
@@ -280,19 +274,8 @@
 			};
 		};
 
-		btnPrev.addEventListener( 'click', () => drehen( idx - 1 ) );
-		btnNext.addEventListener( 'click', () => drehen( idx + 1 ) );
 		karte.addEventListener( 'click', () => drehen( idx < count - 1 ? idx + 1 : idx - 1 ) );
-		root.addEventListener( 'keydown', ( e ) => {
-			if ( 'ArrowLeft' === e.key ) {
-				e.preventDefault();
-				drehen( idx - 1 );
-			}
-			if ( 'ArrowRight' === e.key ) {
-				e.preventDefault();
-				drehen( idx + 1 );
-			}
-		} );
+		bindeSteuerung( root );
 		updateInfo();
 
 		const pageFlip = {
@@ -308,7 +291,7 @@
 			getUI: () => ( { update() {} } ),
 		};
 
-		return {
+		root.__bdpdfInst = {
 			pageFlip,
 			resizeObserver: null,
 			setPageSrc: ( i, src ) => {
@@ -318,6 +301,41 @@
 				}
 			},
 		};
+		return root.__bdpdfInst;
+	}
+
+	/**
+	 * Zurück/Weiter und Tastatur genau einmal pro Block verdrahten (#A1M).
+	 * Die Handler rufen die jeweils aktuelle Instanz auf; so überlebt die
+	 * Steuerung einen Neuaufbau (Grössenwechsel, Vollbild).
+	 * Pfeil links/Bild auf = zurück, Pfeil rechts/Bild ab = weiter.
+	 */
+	function bindeSteuerung( root ) {
+		if ( root.__bdpdfSteuerung ) {
+			return;
+		}
+		root.__bdpdfSteuerung = true;
+		const blaettern = ( vor ) => {
+			const inst = root.__bdpdfInst;
+			if ( inst ) {
+				if ( vor ) {
+					inst.pageFlip.flipNext();
+				} else {
+					inst.pageFlip.flipPrev();
+				}
+			}
+		};
+		root.querySelector( '.bdpdf-prev' ).addEventListener( 'click', () => blaettern( false ) );
+		root.querySelector( '.bdpdf-next' ).addEventListener( 'click', () => blaettern( true ) );
+		root.addEventListener( 'keydown', ( e ) => {
+			if ( 'ArrowLeft' === e.key || 'PageUp' === e.key ) {
+				e.preventDefault();
+				blaettern( false );
+			} else if ( 'ArrowRight' === e.key || 'PageDown' === e.key ) {
+				e.preventDefault();
+				blaettern( true );
+			}
+		} );
 	}
 
 	win.bdpdfFlipbook = { init, resolveFlipStyle };

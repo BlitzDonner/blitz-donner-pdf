@@ -119,7 +119,7 @@ function setupHiRes( root, inst, count, storedWidth ) {
 }
 
 /** Fallback für Blöcke ohne vorgerenderte Seiten: alles im Client rendern. */
-async function legacyRender( root ) {
+async function legacyRender( root, maxHeight ) {
 	const loadText = root.querySelector( '.bdpdf-loader-text' );
 	const progress = root.querySelector( '.bdpdf-progress' );
 	try {
@@ -177,19 +177,122 @@ async function legacyRender( root ) {
 			progress.value = i;
 		}
 
-		window.bdpdfFlipbook.init( root, images, {
+		zeigeBuch( root, images, {
 			pageWidth: pageW,
 			pageHeight: pageH,
 			// Bei Doppelseiten bestimmt das PDF, ob der Umschlag einzeln steht.
 			showCover: spread ? coverSingle : '1' === root.dataset.showCover,
+			maxHeight: maxHeight || 0,
 			flipStyle: root.dataset.flipStyle || 'auto',
-		} );
+		}, false );
 	} catch ( err ) {
 		loadText.textContent = 'Das PDF konnte nicht geladen werden.';
 		progress.hidden = true;
 		// eslint-disable-next-line no-console
 		console.error( '[bdpdf]', err );
 	}
+}
+
+/**
+ * Verfügbare Buchhöhe (#A1M, «contain»): Buch plus Leiste sollen ganz
+ * sichtbar sein. Im Vollbild zählt das Fenster; in einem scrollenden
+ * Container (z.B. Lightbox des Themes) dessen sichtbare Höhe ab dem Block;
+ * sonst die Fensterhöhe. Reserve für Leiste und Download-Link.
+ *
+ * @param {HTMLElement} root Block-Wrapper.
+ * @param {number}      cap  Optionale Obergrenze (Popover des Plugins).
+ * @return {number} Höhe in Pixeln, mindestens 240.
+ */
+function verfuegbareHoehe( root, cap ) {
+	const nav     = root.querySelector( '.bdpdf-nav' );
+	const fb      = root.querySelector( '.bdpdf-fallback' );
+	const reserve = Math.max( nav ? nav.offsetHeight : 0, 48 ) + ( fb ? fb.offsetHeight : 0 ) + 40;
+	let h = window.innerHeight - reserve;
+	if ( document.fullscreenElement !== root ) {
+		let el = root.parentElement;
+		while ( el && el !== document.body ) {
+			const oy = getComputedStyle( el ).overflowY;
+			if ( ( 'auto' === oy || 'scroll' === oy ) && el.clientHeight > 0 ) {
+				const oben = root.getBoundingClientRect().top - el.getBoundingClientRect().top;
+				h = Math.min( h, el.clientHeight - Math.max( oben, 0 ) - reserve );
+				break;
+			}
+			el = el.parentElement;
+		}
+	}
+	if ( cap > 0 ) {
+		h = Math.min( h, cap );
+	}
+	return Math.max( 240, Math.round( h ) );
+}
+
+/**
+ * Buch anzeigen und bei Grössenwechsel (Fenster, Vollbild) neu aufbauen,
+ * auf derselben Seite. hires: gespeicherte Seiten bei Bedarf nachschärfen.
+ */
+function zeigeBuch( root, pages, basis, hires ) {
+	let zuletzt = 0;
+	const bauen = ( erzwingen ) => {
+		const h = verfuegbareHoehe( root, basis.maxHeight );
+		if ( ! erzwingen && root.__bdpdfInst && Math.abs( h - zuletzt ) < 30 ) {
+			return;
+		}
+		zuletzt = h;
+		let start = 0;
+		const alt = root.__bdpdfInst;
+		if ( alt ) {
+			start = alt.pageFlip.getCurrentPageIndex();
+			if ( alt.resizeObserver ) {
+				alt.resizeObserver.disconnect();
+			}
+			if ( alt.pageFlip.destroy ) {
+				alt.pageFlip.destroy(); // entfernt auch .bdpdf-book
+			}
+			if ( ! root.querySelector( '.bdpdf-book' ) ) {
+				const nav    = root.querySelector( '.bdpdf-nav' );
+				const neu    = document.createElement( 'div' );
+				neu.className = 'bdpdf-book';
+				nav.parentNode.insertBefore( neu, nav );
+			}
+		}
+		const inst = window.bdpdfFlipbook.init( root, pages, Object.assign( {}, basis, { maxHeight: h, startPage: start } ) );
+		if ( hires ) {
+			setupHiRes( root, inst, pages.length, basis.pageWidth );
+		}
+	};
+	bauen( true );
+
+	let timer = null;
+	window.addEventListener( 'resize', () => {
+		clearTimeout( timer );
+		timer = setTimeout( () => bauen( false ), 250 );
+	} );
+	document.addEventListener( 'fullscreenchange', () => setTimeout( () => bauen( true ), 100 ) );
+
+	// In einer Lightbox (Theme-Popup oder Dialog) den Fokus in den Viewer
+	// legen, damit Pfeiltasten sofort blättern. Esc bleibt beim Theme.
+	if ( root.closest( '.popup, dialog' ) ) {
+		root.focus( { preventScroll: true } );
+	}
+}
+
+/** Vollbild-Knopf: Block ins Vollbild und zurück. */
+function setupVollbild( root ) {
+	const knopf = root.querySelector( '.bdpdf-fullscreen' );
+	if ( ! knopf ) {
+		return;
+	}
+	if ( ! document.fullscreenEnabled || root.querySelector( 'dialog' ) ) {
+		knopf.hidden = true;
+		return;
+	}
+	knopf.addEventListener( 'click', () => {
+		if ( document.fullscreenElement === root ) {
+			document.exitFullscreen();
+		} else {
+			root.requestFullscreen().then( () => root.focus( { preventScroll: true } ) ).catch( () => {} );
+		}
+	} );
 }
 
 const BDPDF_SELECTOR = '.wp-block-bdpdf-flipbook[data-pdf-url]';
@@ -205,16 +308,15 @@ function bootBook( root, maxHeight ) {
 	const pages = root.dataset.pages ? JSON.parse( root.dataset.pages ) : null;
 	if ( pages && pages.length ) {
 		// Regelfall: vorgerendert → sofort verfügbar.
-		const inst = window.bdpdfFlipbook.init( root, pages, {
+		zeigeBuch( root, pages, {
 			pageWidth: parseInt( root.dataset.pageW, 10 ),
 			pageHeight: parseInt( root.dataset.pageH, 10 ),
 			showCover: '1' === root.dataset.showCover,
 			flipStyle: root.dataset.flipStyle || 'auto',
 			maxHeight: maxHeight || 0,
-		} );
-		setupHiRes( root, inst, pages.length, parseInt( root.dataset.pageW, 10 ) );
+		}, true );
 	} else {
-		legacyRender( root );
+		legacyRender( root, maxHeight );
 	}
 }
 
@@ -258,6 +360,7 @@ function initFlipbookRoot( root ) {
 		return;
 	}
 	root.dataset.bdpdfInit = '1';
+	setupVollbild( root );
 	if ( 'file' === root.dataset.mode ) {
 		setupFileMode( root );
 	} else {
