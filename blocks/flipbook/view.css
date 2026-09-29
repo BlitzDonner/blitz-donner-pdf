@@ -614,6 +614,8 @@
 }
 
 /* Begrenztes Buch mittig statt links (#A1M). */
+.wp-block-bdpdf-flipbook .bdpdf-book,
 .wp-block-bdpdf-flipbook .bdpdf-book .stf__parent {
+	align-self: center;
 	margin-inline: auto;
 }
