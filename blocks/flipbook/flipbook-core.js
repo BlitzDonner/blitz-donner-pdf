@@ -90,8 +90,10 @@
 			width: baseW,
 			height: Math.round( baseW * ratio ),
 			size: 'stretch',
-			minWidth: 240,
-			minHeight: Math.round( 240 * ratio ),
+			// Minimum nie über dem Maximum: sonst setzt StPageFlip das Maximum
+			// stillschweigend auf 2000 px und das Buch sprengt den Platz (#A1M).
+			minWidth: Math.min( 240, maxWidth ),
+			minHeight: Math.min( Math.round( 240 * ratio ), maxHeight ),
 			maxWidth: maxWidth,
 			maxHeight: maxHeight,
 			showCover: false !== opts.showCover,
