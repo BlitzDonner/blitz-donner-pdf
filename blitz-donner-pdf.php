@@ -83,7 +83,7 @@ bdliz_register(
 // veraltete Kopie eines anderen Plugins kann Updates nicht mehr blockieren).
 require_once __DIR__ . '/includes/bd-update-client-loader.php';
 bd_update_client_register(
-	'3.0.0',
+	'3.1.0',
 	__DIR__ . '/includes/class-bd-update-client.php'
 );
 
