@@ -1,0 +1,8 @@
+- Neu: Einstellung «Blättern» mit drei Arten. Softcover (Standard): alle Seiten blättern weich. Hardcover: der Umschlag klappt steif um. Blatt umdrehen: für Flyer und Karten.
+- Neu: Ein PDF mit genau zwei Seiten dreht sich automatisch als Blatt um, alle anderen blättern als Softcover.
+- Neu: Doppelseiten funktionieren auch für PDFs, die ein anderes Blitz-&-Donner-Plugin einbindet.
+- Verbessert: Zeigt Ihre Website ein PDF in einem Fenster über der Seite, ist dieses Fenster rund 90 Prozent breit.
+- Verbessert: Das Buch passt sich dem verfügbaren Platz an. Seite und Leiste bleiben ganz sichtbar, auch beim Ändern der Fenstergrösse.
+- Verbessert: Die Leiste ist ruhiger: Zurück, Seitenzahl, Weiter und Vollbild. Blättern geht auch mit Bild auf und Bild ab.
+- Verbessert: Die Schatten beim Blättern sind dezenter.
+- Verbessert: Interne Überarbeitung der Update-Prüfung. Für Sie ändert sich nichts.

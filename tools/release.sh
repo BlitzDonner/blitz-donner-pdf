@@ -6,22 +6,22 @@
 # des Update-Servers (Deploy-Token, Bearer).
 #
 # Voraussetzungen (alles lokal, nichts davon liegt im Repo):
-#   ~/.bd-deploy-tokens/bdpdf.token          Deploy-Token (chmod 600)
-#   ~/.bd-signing-keys/bd-produktiv-2026.key privater Signierschlüssel
-#   ../bd-plugin-updater/tools/bd-sign.php   Signier-CLI
+#   ~/.bd-deploy-tokens/blitz-donner-pdf.txt  Deploy-Token (chmod 600)
+#   ~/.bd-signing-keys/max.key                privater Signierschlüssel
+#   ~/.claude/skills/bd-wp-plugin/tools/bd-sign.php  Signier-CLI
 #
-# Aufruf:  tools/release.sh "Changelog-Text für diese Version"
+# Aufruf:  tools/release.sh tools/changelog-X.Y.Z.txt   (Datei mit dem Änderungsprotokoll, Regelwerk 19.10.2026)
 
 set -eu
 
 REPO_DIR=$(cd "$(dirname "$0")/.." && pwd)
-SIGN_TOOL="$REPO_DIR/../bd-plugin-updater/tools/bd-sign.php"
-KEY_FILE="$HOME/.bd-signing-keys/bd-produktiv-2026.key"
-TOKEN_FILE="$HOME/.bd-deploy-tokens/bdpdf.token"
+SIGN_TOOL="$HOME/.claude/skills/bd-wp-plugin/tools/bd-sign.php"
+KEY_FILE="$HOME/.bd-signing-keys/max.key"
+TOKEN_FILE="$HOME/.bd-deploy-tokens/blitz-donner-pdf.txt"
 SERVER="https://plugins.blitzdonner.ch"
 SLUG="blitz-donner-pdf"
 
-CHANGELOG=${1:?Aufruf: tools/release.sh "Changelog-Text"}
+CHANGELOG=$(cat "${1:?Aufruf: tools/release.sh tools/changelog-X.Y.Z.txt}")
 
 for f in "$SIGN_TOOL" "$KEY_FILE" "$TOKEN_FILE"; do
 	[ -r "$f" ] || { echo "FEHLER: $f fehlt oder ist nicht lesbar." >&2; exit 1; }

@@ -47,6 +47,7 @@ Alle Seiten werden im Browser vorgerendert. Bis etwa 60 Seiten bleibt die Ladeze
 * Das Buch passt sich in den verfügbaren Platz ein (Fenster, Lightbox, Vollbild): Seite bzw. Doppelseite ganz sichtbar, Leiste immer im Bild. Beim Ändern der Fenstergrösse baut es sich auf derselben Seite neu auf.
 * Ruhige Leiste: ‹ Seite x / y › und Vollbild-Knopf.
 * Blättern auch mit Bild auf/ab; in einer Lightbox liegt der Fokus beim Öffnen im Viewer.
+* Interne Überarbeitung der Update-Prüfung (Update-Client 3.1.0, zusätzlicher Ersatzschlüssel). Für Sie ändert sich nichts.
 
 = 0.11.0 =
 * Neue Einstellung «Blättern»: Softcover (Standard, alle Seiten blättern weich, auch der Umschlag), Hardcover (Umschlag vorn und hinten klappt steif um, Innenseiten blättern) und neu «Blatt umdrehen» für vorne und hinten bedruckte Einzelblätter wie Flyer und Karten: Das Blatt hebt sich an, dreht sich um die Mittelachse und legt sich wieder ab.
